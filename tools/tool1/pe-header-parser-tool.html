@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PE Header Parser: A FASM-Based Tool for 32-bit and 64-bit PE Files</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2em;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 3em;
+            border-bottom: 2px solid #00ff00;
+            padding-bottom: 2em;
+        }
+        h1 {
+            font-size: 3em;
+            margin-bottom: 0.5em;
+            color: #00ff00;
+        }
+        .subtitle {
+            font-size: 1.2em;
+            color: #cccccc;
+            font-style: italic;
+        }
+        .meta {
+            color: #888888;
+            font-size: 0.9em;
+            margin-top: 1em;
+        }
+        h2 {
+            font-size: 2em;
+            color: #00ff00;
+            margin-top: 2em;
+            margin-bottom: 1em;
+            border-left: 4px solid #00ff00;
+            padding-left: 1em;
+        }
+        h3 {
+            font-size: 1.5em;
+            color: #00ff00;
+            margin-top: 1.5em;
+            margin-bottom: 0.8em;
+        }
+        p {
+            font-size: 1.1em;
+            margin-bottom: 1.5em;
+            text-align: justify;
+        }
+        .image-container {
+            text-align: center;
+            margin: 2em 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+        }
+        .image-caption {
+            color: #888888;
+            font-size: 0.9em;
+            margin-top: 0.5em;
+            font-style: italic;
+        }
+        .code-block {
+            background-color: #1a1a1a;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 1em;
+            margin: 1.5em 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.4;
+        }
+        .highlight {
+            background-color: #1a1a1a;
+            border-left: 4px solid #ff6b6b;
+            padding: 1em;
+            margin: 1.5em 0;
+        }
+        .back-link {
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            font-size: 1.1em;
+            padding: 0.8em 1.5em;
+            border: 2px solid white;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            margin-top: 2em;
+        }
+        .back-link:hover {
+            background-color: white;
+            color: black;
+        }
+        .toc {
+            background-color: #1a1a1a;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 1.5em;
+            margin: 2em 0;
+        }
+        .toc h3 {
+            margin-top: 0;
+        }
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .toc li {
+            margin-bottom: 0.5em;
+        }
+        .toc a {
+            color: #00ff00;
+            text-decoration: none;
+        }
+        .toc a:hover {
+            text-decoration: underline;
+        }
+        .github-link {
+            color: #00ff00;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .github-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>PE Header Parser: A FASM-Based Tool</h1>
+            <div class="subtitle">Parsing PE Headers for Both 32-bit and 64-bit Executables</div>
+            <div class="meta">
+                Published: December 15, 2024 | Author: SV | Reading Time: 15 minutes
+            </div>
+        </div>
+
+        <div class="toc">
+            <h3>📋 Table of Contents</h3>
+            <ul>
+                <li><a href="#introduction">1. Introduction</a></li>
+                <li><a href="#project-overview">2. Project Overview</a></li>
+                <li><a href="#architecture">3. Tool Architecture</a></li>
+                <li><a href="#file-structure">4. File Structure and Components</a></li>
+                <li><a href="#implementation-details">5. Implementation Details</a></li>
+                <li><a href="#32-bit-vs-64-bit">6. 32-bit vs 64-bit Handling</a></li>
+                <li><a href="#parsing-process">7. PE Parsing Process</a></li>
+                <li><a href="#tool-output-functionality">8. Tool Output and Functionality</a></li>
+                <li><a href="#source-code">9. Source Code and Repository</a></li>
+                <li><a href="#fasm-power-cybersecurity">10. The Power of FASM in Cybersecurity</a></li>
+                <li><a href="#conclusion">11. Conclusion</a></li>
+            </ul>
+        </div>
+
+        <section id="introduction">
+            <h2>Introduction</h2>
+            <p>I am planning to write a blog with template and look like ref.html.</p>
+            
+            <p>I have written a tool, that parses PE header for both 32 and 64 bit PE files. This comprehensive PE header parser is built entirely in FASM (Flat Assembler) and provides detailed analysis of Portable Executable file structures. The tool is designed to be simple, fast, and educational, making it an excellent resource for understanding PE file internals.</p>
+
+            <p>I used FASM to write the entire tool. FASM was chosen specifically for its challenging and low-level nature. Working directly with assembly language provides complete control over memory management, register usage, and system calls, making it an ideal choice for binary analysis tools that require precise control over the execution environment. The challenge of writing complex parsing logic in pure assembly also serves as an excellent learning experience for understanding computer architecture and low-level programming concepts.</p>
+
+            <div class="image-container">
+                <img src="img1.png" alt="Description">                
+            </div>
+
+            <div class="image-container">
+                <img src="img2.png" alt="Description">                
+            </div>
+
+            <div class="image-container">
+                <img src="img3.png" alt="Description">                
+            </div>
+            
+        </section>
+
+        <section id="project-overview">
+            <h2>Project Overview</h2>
+            <p>The parse_pe tool is a version 8 implementation that provides comprehensive PE header parsing capabilities. It's written entirely in FASM assembly language, making it extremely fast and efficient for analyzing PE file structures.</p>
+
+            <h3>Key Features</h3>
+            <ul>
+                <li><strong>Dual Architecture Support:</strong> Handles both 32-bit (PE32) and 64-bit (PE32+) executables</li>
+                <li><strong>Complete Header Parsing:</strong> DOS header, PE signature, COFF file header, and optional header</li>
+                <li><strong>Data Directory Analysis:</strong> Export, import, resource, and other data directories</li>
+                <li><strong>Section Header Enumeration:</strong> Detailed analysis of all sections</li>
+                <li><strong>Hex Dump Capability:</strong> Displays first 24 bytes of each section</li>
+                <li><strong>Import Table Parsing:</strong> Analyzes imported functions and DLLs</li>
+            </ul>
+
+            <div class="highlight">
+                <strong>Tool Specifications:</strong>
+                <ul>
+                    <li>Written in FASM assembly language</li>
+                    <li>Supports files up to 4MB in size</li>
+                    <li>Command-line interface with file argument</li>
+                    <li>Comprehensive error handling and validation</li>
+                    <li>Detailed output formatting with status indicators</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="architecture">
+            <h2>Tool Architecture</h2>
+            <p>The tool follows a modular architecture with separate components for different aspects of PE file parsing. The main entry point coordinates the overall parsing process while specialized modules handle specific header types.</p>
+
+            <h3>Core Components</h3>
+            <ul>
+                <li><strong>main.asm:</strong> Entry point and command-line argument handling</li>
+                <li><strong>ifh.asm:</strong> Input file handling and memory management</li>
+                <li><strong>parse_pe.asm:</strong> 32-bit PE file parsing logic</li>
+                <li><strong>parse_pe64.asm:</strong> 64-bit PE file parsing logic</li>
+                <li><strong>printhex.asm:</strong> Hexadecimal output formatting</li>
+                <li><strong>libs.inc:</strong> Library function definitions</li>
+                <li><strong>macros.inc:</strong> Assembly macros and utilities</li>
+            </ul>
+
+            <div class="code-block">
+; Main entry point structure
+format PE64 console
+entry main
+
+include 'C:\fasm\INCLUDE\WIN64AX.INC'
+include 'libs.inc'
+include 'macros.inc'
+
+section '.text' code readable executable
+main:
+    pushall
+    flushall
+    invoke GetCommandLineA
+    mov [cmd_line_argument_pointer], eax
+    
+    ; Process command line arguments
+    ; Open and parse PE file
+    ; Display results
+            </div>
+        </section>
+
+        <section id="file-structure">
+            <h2>File Structure and Components</h2>
+            <p>The tool consists of 8 main source files, each serving a specific purpose in the PE parsing process:</p>
+
+            <h3>Source Files Breakdown</h3>
+            <ul>
+                <li><strong>main.asm (132 lines):</strong> Entry point, command-line processing, and program flow control</li>
+                <li><strong>ifh.asm (198 lines):</strong> File I/O operations, memory allocation, and architecture detection</li>
+                <li><strong>parse_pe.asm (1,299 lines):</strong> Complete 32-bit PE header parsing implementation</li>
+                <li><strong>parse_pe64.asm (932 lines):</strong> Complete 64-bit PE header parsing implementation</li>
+                <li><strong>printhex.asm (234 lines):</strong> Hexadecimal formatting and display utilities</li>
+                <li><strong>libs.inc (215 lines):</strong> Library function declarations and constants</li>
+                <li><strong>macros.inc (129 lines):</strong> Assembly macros for common operations</li>
+                <li><strong>README.md (52 lines):</strong> Documentation and usage instructions</li>
+            </ul>
+
+            <div class="code-block">
+; File handling structure from ifh.asm
+proc open_file input_file_name
+    mov dword [input_file_name], ecx
+    
+    ; Open file with CreateFileA
+    invoke CreateFileA, dword [input_file_name], GENERIC_READ, 0, NULL, \
+                        OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL
+    
+    ; Get file size
+    invoke GetFileSize, [input_file_handle], NULL
+    
+    ; Allocate memory buffer
+    invoke GlobalAlloc, GMEM_FIXED or GMEM_ZEROINIT, [input_file_size]
+    
+    ; Read file into memory
+    invoke ReadFile, [input_file_handle], [input_file_buffer_address], \
+                        [input_file_size], addr input_file_size_read_by_readfile, NULL
+            </div>
+        </section>
+
+        <section id="implementation-details">
+            <h2>Implementation Details</h2>
+            <p>The tool implements a parsing system that automatically detects PE file architecture and applies the appropriate parsing logic. The implementation uses direct memory access and efficient assembly techniques for optimal performance.</p>
+
+            <h3>MZ Signature Verification</h3>
+            <p>The first step in PE file validation is checking the MZ signature (0x5A4D) at the beginning of the file. This legacy DOS header signature is essential for identifying valid PE files.</p>
+
+            <div class="code-block">
+; MZ Signature verification from parse_pe64.asm
+call print_newline
+invoke printf, "verifying MZ signature at offset: 0x%x ... ", offset.dos_header.mz_signature
+xor edi, edi
+xor ebx, ebx
+xor rdx, rdx
+xor esi, esi
+
+; Load the start of the file buffer into esi
+mov esi, dword [input_file_buffer_address]
+mov bx, word [esi + offset.dos_header.mz_signature]
+mov [value.pe64.dos_header.mz_signature], bx
+cmp bx, word 0x5a4d
+je pe64_verify_mz_noerror
+    invoke printf, "found 0x%x ... [ failed ] ", word bx
+    jmp pe64_parse_pe_return_with_error
+pe64_verify_mz_noerror:
+invoke printf, "found 0x%x ... [ ok ] ", word bx
+            </div>
+
+            <h3>PE Signature Validation</h3>
+            <p>After MZ verification, the tool locates and validates the PE signature (0x00004550) at the offset specified in the DOS header.</p>
+
+            <div class="code-block">
+; PE Signature validation
+call print_newline
+invoke printf, "finding PE signature at offset 0x%hhhx ... ", \
+                [offset.pe64.nt_header.pe_signature]
+
+xor esi, esi
+xor edi, edi
+mov esi, dword [input_file_buffer_address]
+mov edi, [offset.pe64.nt_header.pe_signature]
+mov edx, [esi + edi]
+mov [value.pe64.nt_header.pe_signature], edx
+
+cmp dx, word 0x4550
+je pe64_verify_pe_signature_no_error
+    invoke printf, "found 0x%x ... [ failed ] ", word dx
+    jmp pe64_parse_pe_return_with_error
+pe64_verify_pe_signature_no_error:
+invoke printf, "found 0x%x ... [ ok ] ... ", word dx
+            </div>
+
+            <h3>Architecture Detection</h3>
+            <p>The tool automatically detects whether the PE file is 32-bit or 64-bit by examining the machine field in the COFF file header.</p>
+
+            <div class="code-block">
+; Architecture detection from ifh.asm
+fastcall find_is32bit, [input_file_buffer_address]
+cmp eax, 64
+je found_64_bit
+find_is32bit_foun64bit:
+    fastcall parse_pe, [input_file_buffer_address]
+    invoke printf, "pe32 header parsed successfull ... "
+    call print_newline
+    jmp found_32_64_bit_comeout
+
+found_64_bit:
+    invoke printf, "pe32+ (64bit) found ... "
+    call print_newline
+    fastcall parse_pe64, [input_file_buffer_address]
+    invoke printf, "pe64 header parsed successfull ... "
+    call print_newline
+            </div>
+        </section>
+
+        <section id="32-bit-vs-64-bit">
+            <h2>32-bit vs 64-bit Handling</h2>
+            <p>The tool handles both 32-bit and 64-bit PE files by detecting the machine type and applying the appropriate parsing logic. This is crucial because the structures differ significantly between architectures.</p>
+
+            <h3>Key Differences Handled</h3>
+            <ul>
+                <li><strong>Image Base:</strong> 32-bit uses 4-byte address, 64-bit uses 8-byte address</li>
+                <li><strong>Stack/Heap Sizes:</strong> 64-bit uses 8-byte values for stack and heap reserves</li>
+                <li><strong>Optional Header Size:</strong> Different sizes and field layouts</li>
+                <li><strong>Register Usage:</strong> Different register conventions and addressing modes</li>
+            </ul>
+
+            <div class="code-block">
+; 32-bit vs 64-bit structure differences
+; 32-bit image base (4 bytes)
+value.nt_header.optional_header.image_base dd 0x00000000
+
+; 64-bit image base (8 bytes)
+value.pe64.nt_header.optional_header.image_base dq 0x00000000
+
+; 32-bit stack reserve (4 bytes)
+value.nt_header.optional_header.size_of_stack_reserve dd 0x00000000
+
+; 64-bit stack reserve (8 bytes)
+value.pe64.nt_header.optional_header.size_of_stack_reserve dq 0x00000000
+            </div>
+
+            <div class="image-container">
+                <img src="https://via.placeholder.com/800x300/1a1a1a/00ff00?text=32-bit+vs+64-bit+PE+Comparison" alt="32-bit vs 64-bit PE comparison">
+                <div class="image-caption">Figure 2: Comparison of 32-bit and 64-bit PE file structures</div>
+            </div>
+        </section>
+
+        <section id="parsing-process">
+            <h2>PE Parsing Process</h2>
+            <p>The tool follows a systematic approach to parse PE files, starting from the DOS header and progressing through all major components:</p>
+
+            <h3>Parsing Sequence</h3>
+            <ol>
+                <li><strong>DOS Header:</strong> Verify MZ signature and locate PE header offset</li>
+                <li><strong>PE Signature:</strong> Validate PE signature at the specified offset</li>
+                <li><strong>COFF File Header:</strong> Parse machine type, number of sections, characteristics</li>
+                <li><strong>Optional Header:</strong> Parse magic number, entry point, image base, sizes</li>
+                <li><strong>Data Directories:</strong> Analyze export, import, resource, and other directories</li>
+                <li><strong>Section Headers:</strong> Parse all section information and characteristics</li>
+                <li><strong>Section Data:</strong> Display hex dump of section contents</li>
+                <li><strong>Import Table:</strong> Parse and display imported functions</li>
+            </ol>
+
+            <div class="code-block">
+; Data directory parsing example
+invoke printf, "printing data directories... "
+call print_newline
+
+invoke printf, " export table                   - "
+invoke printf, "0x%08x (rva) - ", [value.pe64.nt_header.optional_header.dd.export.rva]
+invoke printf, "0x%08x (size). ", [value.pe64.nt_header.optional_header.dd.export.size]
+call print_newline
+
+invoke printf, " import table                   - "
+invoke printf, "0x%08x (rva) - ", [value.pe64.nt_header.optional_header.dd.import.rva]
+invoke printf, "0x%08x (size). ", [value.pe64.nt_header.optional_header.dd.import.size]
+call print_newline
+
+invoke printf, " resource tabel                 - "
+invoke printf, "0x%08x (rva) - ", [value.pe64.nt_header.optional_header.dd.resource.rva]
+invoke printf, "0x%08x (size). ", [value.pe64.nt_header.optional_header.dd.resource.size]
+            </div>
+
+            <h3>Error Handling</h3>
+            <p>The tool implements comprehensive error handling with specific status messages for each validation step:</p>
+
+            <div class="code-block">
+; Error handling examples from actual code
+.CreateFileA_error:
+    invoke GetLastError
+    mov [ret_error_code], eax
+    invoke printf, "Error in opening the file %s", dword [input_file_name]
+    invoke printf, "Error code is %d ", [ret_error_code]
+    jmp open_file_function_return_with_error
+
+.GetFileSize_error:
+    invoke GetLastError
+    mov [ret_error_code], eax
+    invoke printf, "Error in GetFileSize."
+    invoke printf, "Error code is %d.", [ret_error_code]
+    call print_newline
+    jmp open_file_function_return_with_error
+            </div>
+        </section>
+
+        <section id="tool-output-functionality">
+            <h2>Tool Output and Functionality</h2>
+            <p>When the parse_pe tool runs, it provides comprehensive analysis of PE files with detailed output at each stage of the parsing process. The tool automatically detects the file type and applies the appropriate parsing logic.</p>
+
+            <h3>Initial File Processing</h3>
+            <p>The tool first parses the input PE32 file, performing initial validation and file structure analysis. This includes:</p>
+            <ul>
+                <li><strong>File Format Detection:</strong> Automatically identifies whether the file is 32-bit or 64-bit PE format</li>
+                <li><strong>Basic Validation:</strong> Checks file integrity and basic PE structure</li>
+                <li><strong>Memory Loading:</strong> Efficiently loads the file into memory for analysis</li>
+            </ul>
+
+            <h3>Header Analysis Output</h3>
+            <p>The tool prints detailed information about all major PE header components:</p>
+
+            <div class="highlight">
+                <strong>DOS Header Analysis:</strong>
+                <ul>
+                    <li>MZ signature validation and display</li>
+                    <li>PE header offset calculation</li>
+                    <li>Legacy DOS header information</li>
+                </ul>
+            </div>
+
+            <div class="highlight">
+                <strong>NT Header Analysis:</strong>
+                <ul>
+                    <li>PE signature verification</li>
+                    <li>File header (COFF) information</li>
+                    <li>Optional header details</li>
+                </ul>
+            </div>
+
+            <h3>Data Directory Processing</h3>
+            <p>The tool walks through all data directories and provides comprehensive analysis:</p>
+            <ul>
+                <li><strong>Export Table:</strong> Lists exported functions and their addresses</li>
+                <li><strong>Import Table:</strong> Shows imported DLLs and functions</li>
+                <li><strong>Resource Table:</strong> Displays resource information</li>
+                <li><strong>Exception Table:</strong> Shows exception handling data</li>
+                <li><strong>Certificate Table:</strong> Displays digital signature information</li>
+                <li><strong>Base Relocation Table:</strong> Shows relocation information</li>
+                <li><strong>Debug Table:</strong> Displays debugging information</li>
+                <li><strong>Architecture Table:</strong> Shows architecture-specific data</li>
+                <li><strong>Global Pointer Table:</strong> Displays global pointer information</li>
+                <li><strong>TLS Table:</strong> Shows Thread Local Storage data</li>
+            </ul>
+
+            <h3>Section Header Analysis</h3>
+            <p>The tool provides detailed section header information including:</p>
+            <ul>
+                <li><strong>Section Names:</strong> Displays the name of each section</li>
+                <li><strong>Virtual Addresses:</strong> Shows where sections are loaded in memory</li>
+                <li><strong>Section Sizes:</strong> Displays both virtual and raw sizes</li>
+                <li><strong>Characteristics:</strong> Shows section permissions and attributes</li>
+            </ul>
+
+            <h3>Hex Dump Capability</h3>
+            <p>For each section, the tool prints the first 24 bytes in hexadecimal format, providing:</p>
+            <ul>
+                <li><strong>Raw Data Display:</strong> Shows actual binary content of sections</li>
+                <li><strong>Address Mapping:</strong> Displays memory addresses for each byte</li>
+                <li><strong>Pattern Analysis:</strong> Helps identify code patterns and data structures</li>
+            </ul>
+
+            <h3>64-bit PE Processing</h3>
+            <p>When processing 64-bit PE files, the tool:</p>
+            <ul>
+                <li><strong>Detects PE64 Format:</strong> Automatically identifies 64-bit executables</li>
+                <li><strong>Parses Extended Headers:</strong> Handles the larger optional header structure</li>
+                <li><strong>Processes 64-bit Addresses:</strong> Correctly handles 8-byte addresses</li>
+                <li><strong>Displays 64-bit Sections:</strong> Shows hex dump of PE64 sections</li>
+            </ul>
+
+            <h3>Import Table Analysis</h3>
+            <p>The tool provides comprehensive import table analysis including:</p>
+            <ul>
+                <li><strong>DLL Dependencies:</strong> Lists all imported DLLs</li>
+                <li><strong>Function Names:</strong> Shows imported function names</li>
+                <li><strong>Import Addresses:</strong> Displays where functions are loaded</li>
+                <li><strong>Import Names Table:</strong> Shows the import names table structure</li>
+            </ul>
+
+            <div class="code-block">
+; Example of tool output format
++---------------------------------------------------------------------------------------+
+parsing for pe format at address 0x00400000 ...
+verifying MZ signature at offset: 0x0 ... found 0x5a4d ... [ ok ]
+finding offset to NT header ... offset to NT header is 0x000000e8 ... [ ok ]
+finding PE signature at offset 0x000000e8 ... found 0x00004550 ... [ ok ]
+verifying PE machine architecture ... machine: 0x014c ... [ ok ]
+printing the parsed pe32 ...
+MZ signature at offset: 0x0 is 0x5a4d ...
+offset to NT header is 0x000000e8 ...
+PE signature at offset 0x000000e8 ... 0x00004550 ...
+            </div>
+
+            <h3>Future Enhancements</h3>
+            <p>The tool is designed for extensibility with planned improvements including:</p>
+            <ul>
+                <li><strong>Enhanced Error Checking:</strong> More comprehensive validation and error reporting</li>
+                <li><strong>Import Table Expansion:</strong> Detailed API printing and analysis</li>
+                <li><strong>Export Table Analysis:</strong> Comprehensive export function analysis</li>
+                <li><strong>Resource Analysis:</strong> Detailed resource table parsing</li>
+            </ul>
+
+            <div class="highlight">
+                <strong>Tool Capabilities Summary:</strong>
+                <ul>
+                    <li>Universal PE file support (32-bit and 64-bit)</li>
+                    <li>Complete header structure analysis</li>
+                    <li>Data directory enumeration</li>
+                    <li>Section header detailed analysis</li>
+                    <li>Hex dump of section contents</li>
+                    <li>Import table comprehensive analysis</li>
+                    <li>Real-time processing and display</li>
+                    <li>Educational output format</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="source-code">
+            <h2>Source Code and Repository</h2>
+            <p>My source code is located at: <a href="https://github.com/vlabsc/parse_pe" class="github-link" target="_blank">https://github.com/vlabsc/parse_pe</a></p>
+
+            <p>The repository contains the complete FASM source code for the PE header parser tool, along with comprehensive documentation and usage examples. The code is well-structured and heavily commented for educational purposes.</p>
+
+            <h3>Build Instructions</h3>
+            <p>The tool can be built using FASM with a simple command:</p>
+
+            <div class="code-block">
+; Build command
+fasm main.asm parse_pe.exe
+            </div>
+
+            <h3>Usage Examples</h3>
+            <div class="code-block">
+; Command line usage
+parse_pe.exe parse_pe.exe
+parse_pe.exe calc.exe
+            </div>
+
+            <div class="highlight">
+                <strong>Repository Contents:</strong>
+                <ul>
+                    <li>Complete FASM source code (8 files, ~3,000 lines total)</li>
+                    <li>Comprehensive documentation and README</li>
+                    <li>Build script (run.bat)</li>
+                    <li>Screenshot examples of tool output</li>
+                    <li>Detailed usage instructions</li>
+                </ul>
+            </div>
+
+            <p>The tool is designed to be educational and can serve as a reference implementation for understanding PE file structures and FASM programming techniques.</p>
+        </section>
+
+        <section id="fasm-power-cybersecurity">
+            <h2>The Power of FASM in Cybersecurity</h2>
+            <p>FASM's unique characteristics make it an exceptional choice for cybersecurity tools and low-level programming projects. Its direct control over system resources and minimal abstraction layer provides capabilities that higher-level languages simply cannot match.</p>
+
+            <h3>Why FASM is Powerful for Security Tools</h3>
+            <ul>
+                <li><strong>Direct Memory Access:</strong> Complete control over memory layout and manipulation - <em>used in red-teaming for process injection and memory manipulation techniques</em></li>
+                <li><strong>Minimal Footprint:</strong> Extremely small executable sizes, perfect for embedded security tools - <em>used in exploit development for creating compact shellcode and payloads</em></li>
+                <li><strong>No Runtime Dependencies:</strong> Self-contained executables that don't rely on external libraries - <em>used in malware analysis for creating standalone analysis tools and unpackers</em></li>
+                <li><strong>Reverse Engineering Resistance:</strong> Difficult to analyze and reverse engineer - <em>used in red-teaming for creating stealthy tools that evade detection and analysis</em></li>
+                <li><strong>Real-time Performance:</strong> Near-native execution speed with predictable timing - <em>used in exploit development for timing-sensitive attacks and precision payload delivery</em></li>
+            </ul>
+
+            <h3>Notable FASM Projects in Cybersecurity</h3>
+            <p>The cybersecurity community has embraced FASM for various innovative projects:</p>
+
+            <div class="highlight">
+                <strong>Malware Analysis Tools:</strong> Researchers have built custom unpackers and analysis tools using FASM for their ability to handle obfuscated code and complex binary structures.
+            </div>
+
+            <div class="highlight">
+                <strong>Exploit Development:</strong> Many security researchers use FASM to craft precise shellcode and exploit payloads that require exact control over instruction sequences.
+            </div>
+
+            <div class="highlight">
+                <strong>Binary Patching Tools:</strong> Tools for modifying executables at the binary level, often used in software security research and vulnerability analysis.
+            </div>
+
+            <div class="highlight">
+                <strong>Custom Loaders:</strong> Security professionals have created custom PE loaders and process injection tools using FASM for their stealth and efficiency.
+            </div>
+
+            <h3>Educational Value in Security</h3>
+            <p>Learning FASM provides deep insights into:</p>
+            <ul>
+                <li><strong>Computer Architecture:</strong> Understanding how instructions are executed at the hardware level</li>
+                <li><strong>Memory Management:</strong> Direct experience with memory layout and addressing</li>
+                <li><strong>System Calls:</strong> How applications interact with the operating system</li>
+                <li><strong>Binary Analysis:</strong> Reading and understanding compiled code</li>
+                <li><strong>Exploit Development:</strong> Understanding how vulnerabilities can be exploited</li>
+            </ul>
+
+            <div class="code-block">
+; Example of FASM's power in security tools
+; Direct system call without API functions
+mov eax, 0x1        ; sys_exit
+mov ebx, 0x0        ; exit code
+int 0x80            ; direct system call
+
+; Custom memory allocation
+mov eax, 0x2d       ; sys_brk
+mov ebx, 0x0        ; get current break
+int 0x80            ; direct system call
+            </div>
+
+            <h3>Community and Resources</h3>
+            <p>The FASM community includes many security researchers and reverse engineers who contribute to:</p>
+            <ul>
+                <li><strong>Open Source Security Tools:</strong> Various analysis and testing frameworks</li>
+                <li><strong>Educational Projects:</strong> Learning resources for assembly programming</li>
+                <li><strong>Proof of Concept Exploits:</strong> Demonstrations of security vulnerabilities</li>
+                <li><strong>Custom Operating Systems:</strong> Experimental OS projects for security research</li>
+            </ul>
+
+            <p>This rich ecosystem of security-focused projects demonstrates why FASM remains a valuable skill for cybersecurity professionals and why choosing it for this PE parser project aligns with both educational goals and practical security tool development.</p>
+        </section>
+
+        <section id="conclusion">
+            <h2>Conclusion</h2>
+            <p>This PE header parser tool demonstrates the power and efficiency of FASM assembly language for low-level system programming tasks. By providing comprehensive parsing capabilities for both 32-bit and 64-bit PE files, the tool serves as an excellent educational resource and practical utility for binary analysis.</p>
+
+            <p>The implementation showcases several important concepts:</p>
+            <ul>
+                <li><strong>Assembly Programming:</strong> Direct memory manipulation and efficient register usage</li>
+                <li><strong>PE File Format:</strong> Complete understanding of Windows executable structure</li>
+                <li><strong>Error Handling:</strong> Robust validation and error reporting</li>
+                <li><strong>Cross-Architecture Support:</strong> Unified codebase handling multiple PE variants</li>
+            </ul>
+
+            <div class="highlight">
+                <strong>Future Enhancements:</strong> The tool could be extended with import table analysis, export table parsing, and additional data directory support. The modular architecture makes it easy to add new parsing capabilities while maintaining the existing functionality.
+            </div>
+
+            <p>The combination of FASM's efficiency and the tool's comprehensive feature set makes it an excellent choice for developers and security researchers who need to understand PE file internals or build upon this foundation for more advanced binary analysis tools.</p>
+        </section>
+
+        <a href="../../index.html" class="back-link">← Back to Home</a>
+    </div>
+</body>
+</html> 

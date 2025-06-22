@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File-in-Hex: A FASM-Based Hex Viewer for Binary Analysis</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2em;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 3em;
+            border-bottom: 2px solid #00ff00;
+            padding-bottom: 2em;
+        }
+        h1 {
+            font-size: 3em;
+            margin-bottom: 0.5em;
+            color: #00ff00;
+        }
+        .subtitle {
+            font-size: 1.2em;
+            color: #cccccc;
+            font-style: italic;
+        }
+        .meta {
+            color: #888888;
+            font-size: 0.9em;
+            margin-top: 1em;
+        }
+        h2 {
+            font-size: 2em;
+            color: #00ff00;
+            margin-top: 2em;
+            margin-bottom: 1em;
+            border-left: 4px solid #00ff00;
+            padding-left: 1em;
+        }
+        h3 {
+            font-size: 1.5em;
+            color: #00ff00;
+            margin-top: 1.5em;
+            margin-bottom: 0.8em;
+        }
+        p {
+            font-size: 1.1em;
+            margin-bottom: 1.5em;
+            text-align: justify;
+        }
+        .image-container {
+            text-align: center;
+            margin: 2em 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+        }
+        .image-caption {
+            color: #888888;
+            font-size: 0.9em;
+            margin-top: 0.5em;
+            font-style: italic;
+        }
+        .code-block {
+            background-color: #1a1a1a;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 1em;
+            margin: 1.5em 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.4;
+        }
+        .highlight {
+            background-color: #1a1a1a;
+            border-left: 4px solid #ff6b6b;
+            padding: 1em;
+            margin: 1.5em 0;
+        }
+        .back-link {
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            font-size: 1.1em;
+            padding: 0.8em 1.5em;
+            border: 2px solid white;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            margin-top: 2em;
+        }
+        .back-link:hover {
+            background-color: white;
+            color: black;
+        }
+        .toc {
+            background-color: #1a1a1a;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 1.5em;
+            margin: 2em 0;
+        }
+        .toc h3 {
+            margin-top: 0;
+        }
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .toc li {
+            margin-bottom: 0.5em;
+        }
+        .toc a {
+            color: #00ff00;
+            text-decoration: none;
+        }
+        .toc a:hover {
+            text-decoration: underline;
+        }
+        .github-link {
+            color: #00ff00;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .github-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>File-in-Hex: A FASM-Based Hex Viewer</h1>
+            <div class="subtitle">Binary File Analysis with Assembly Language Precision</div>
+            <div class="meta">
+                Published: December 15, 2024 | Author: SV | Reading Time: 12 minutes
+            </div>
+        </div>
+
+        <div class="toc">
+            <h3>📋 Table of Contents</h3>
+            <ul>
+                <li><a href="#introduction">1. Introduction</a></li>
+                <li><a href="#project-overview">2. Project Overview</a></li>
+                <li><a href="#architecture">3. Tool Architecture</a></li>
+                <li><a href="#file-structure">4. File Structure and Components</a></li>
+                <li><a href="#implementation-details">5. Implementation Details</a></li>
+                <li><a href="#hex-formatting">6. Hex Formatting Algorithm</a></li>
+                <li><a href="#ascii-display">7. ASCII Display Logic</a></li>
+                <li><a href="#performance-optimization">8. Performance Optimization</a></li>
+                <li><a href="#source-code">9. Source Code and Repository</a></li>
+                <li><a href="#fasm-power-cybersecurity">10. The Power of FASM in Cybersecurity</a></li>
+                <li><a href="#conclusion">11. Conclusion</a></li>
+            </ul>
+        </div>
+
+        <section id="introduction">
+            <h2>Introduction</h2>            
+            
+            <p>This time my tool prints the content of any file in hex format. This comprehensive hex viewer is built entirely in FASM (Flat Assembler) and provides detailed binary analysis capabilities for any file format. The tool is designed to be simple, fast, and educational, making it an excellent resource for understanding binary file structures and low-level programming.</p>
+
+            <p>I used FASM to write the entire tool. FASM was chosen specifically for its challenging and low-level nature. Working directly with assembly language provides complete control over memory management, register usage, and system calls, making it an ideal choice for binary analysis tools that require precise control over the execution environment. The challenge of writing complex hex formatting logic in pure assembly also serves as an excellent learning experience for understanding computer architecture and low-level programming concepts.</p>
+
+            <div class="image-container">
+                <img src="img1.png" alt="Description">                
+            </div>
+        </section>
+
+        <section id="project-overview">
+            <h2>Project Overview</h2>
+            <p>The file_in_hex tool is a version 11 implementation that provides comprehensive hex viewing capabilities for any file format. It's written entirely in FASM assembly language, making it extremely fast and efficient for binary file analysis.</p>
+
+            <h3>Key Features</h3>
+            <ul>
+                <li><strong>Universal File Support:</strong> Analyzes any file format (PE, images, documents, etc.)</li>
+                <li><strong>Dual Display Format:</strong> Shows both hexadecimal and ASCII representations</li>
+                <li><strong>Configurable Layout:</strong> 16 bytes per line with address offsets</li>
+                <li><strong>File Size Handling:</strong> Supports files up to 4MB with efficient memory management</li>
+                <li><strong>Real-time Processing:</strong> Fast binary analysis with minimal overhead</li>
+                <li><strong>Error Handling:</strong> Comprehensive file operation validation</li>
+            </ul>
+
+            <div class="highlight">
+                <strong>Tool Specifications:</strong>
+                <ul>
+                    <li>Written in FASM assembly language (version 11)</li>
+                    <li>Supports files up to 4MB (4,194,304 bytes)</li>
+                    <li>Command-line interface with file argument</li>
+                    <li>16-byte hex display per line with ASCII representation</li>
+                    <li>Address offset display for precise location tracking</li>
+                    <li>Comprehensive error handling and validation</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="architecture">
+            <h2>Tool Architecture</h2>
+            <p>The tool follows a modular architecture with separate components for different aspects of hex file analysis. The main entry point coordinates the overall file processing while specialized modules handle specific formatting tasks.</p>
+
+            <h3>Core Components</h3>
+            <ul>
+                <li><strong>fih.asm (221 lines):</strong> Main entry point, file I/O operations, and program flow control</li>
+                <li><strong>printhex.asm (311 lines):</strong> Core hex formatting and display logic</li>
+                <li><strong>libs.inc (202 lines):</strong> Library function definitions and constants</li>
+                <li><strong>macros.inc (129 lines):</strong> Assembly macros and utility functions</li>
+                <li><strong>README.md (28 lines):</strong> Documentation and usage instructions</li>
+            </ul>
+
+            <div class="code-block">
+; Main entry point structure from fih.asm
+format PE64 console
+entry main
+
+include 'C:\fasm\INCLUDE\WIN64AX.INC'
+include 'libs.inc'
+include 'macros.inc'
+
+section '.text' code readable executable
+main:
+    pushall
+    
+    ; Process command line arguments
+    ; Open and read file
+    ; Allocate memory buffer
+    ; Call hex printing function
+    ; Display results
+            </div>
+        </section>
+
+        <section id="file-structure">
+            <h2>File Structure and Components</h2>
+            <p>The tool consists of 5 main source files, each serving a specific purpose in the hex viewing process:</p>
+
+            <h3>Source Files Breakdown</h3>
+            <ul>
+                <li><strong>fih.asm (221 lines):</strong> Main program logic, file handling, and memory management</li>
+                <li><strong>printhex.asm (311 lines):</strong> Core hex formatting algorithm and display logic</li>
+                <li><strong>libs.inc (202 lines):</strong> Library function declarations and system constants</li>
+                <li><strong>macros.inc (129 lines):</strong> Assembly macros for common operations</li>
+                <li><strong>README.md (28 lines):</strong> Documentation and build instructions</li>
+            </ul>
+
+            <div class="code-block">
+; File handling structure from fih.asm
+invoke CreateFileA, [inputfile_name_address], GENERIC_READ, 0, NULL, \
+                    OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL
+mov [inputfile_opened_handle], eax
+
+; Get file size
+invoke GetFileSize, [inputfile_opened_handle], NULL
+mov [inputfile_size], eax
+
+; Allocate memory buffer
+mov eax, GMEM_FIXED
+or eax, GMEM_ZEROINIT
+invoke GlobalAlloc, eax, [inputfile_max_size_allowed]
+
+; Read file into memory
+invoke ReadFile, [inputfile_opened_handle], [inputfile_read_buffer_address], \
+                    [inputfile_max_size_allowed], addr inputfile_bytes_read_by_readfile, NULL
+            </div>
+        </section>
+
+        <section id="implementation-details">
+            <h2>Implementation Details</h2>
+            <p>The tool implements a sophisticated hex viewing system that processes files in chunks and displays them in a structured format. The implementation uses direct memory access and efficient assembly techniques for optimal performance.</p>
+
+            <h3>File Size Validation</h3>
+            <p>The tool includes comprehensive file size checking to ensure efficient memory usage and prevent system resource exhaustion.</p>
+
+            <div class="code-block">
+; File size validation from fih.asm
+xor rbx, rbx
+mov ebx, [inputfile_max_size_allowed]
+cmp [inputfile_size], ebx
+jle .filesizeok
+
+invoke printf, "file size is bigger than MAX bytes (%d bytes).", \
+                [inputfile_max_size_allowed]
+jmp exitall
+
+.filesizeok:
+    ; Continue with file processing
+            </div>
+
+            <h3>Memory Management</h3>
+            <p>The tool uses efficient memory allocation strategies to handle large files while maintaining performance:</p>
+
+            <div class="code-block">
+; Memory allocation and management
+mov eax, GMEM_FIXED
+or eax, GMEM_ZEROINIT
+invoke GlobalAlloc, eax, [inputfile_max_size_allowed]
+cmp eax, 0x0
+jne .globalallocok
+invoke GetLastError
+mov [ret_error_code], eax
+invoke printf, "error in allocating memory. error code: %d", [ret_error_code]
+jmp exitall
+
+.globalallocok:
+    mov [inputfile_read_buffer_address], eax
+    invoke printf, "buffer allocated at address: 0x%x", [inputfile_read_buffer_address]
+            </div>
+
+            <h3>Line Calculation Algorithm</h3>
+            <p>The tool calculates the number of display lines and handles partial lines efficiently:</p>
+
+            <div class="code-block">
+; Line calculation logic
+mov eax, [inputfile_bytes_read_by_readfile]
+mov ecx, [hexprint_buffer_total_columns_to_display]  ; 16 bytes per line
+
+div ecx
+mov [hexprint_buffer_total_lines_to_display], eax    ; Complete lines
+mov [hexprint_buffer_last_line_columns_to_display], edx  ; Remaining bytes
+            </div>
+        </section>
+
+        <section id="hex-formatting">
+            <h2>Hex Formatting Algorithm</h2>
+            <p>The core hex formatting logic is implemented in printhex.asm, providing efficient conversion of binary data to hexadecimal representation.</p>
+
+            <h3>Hex Table Lookup</h3>
+            <p>The tool uses a pre-defined hex table for efficient character conversion:</p>
+
+            <div class="code-block">
+; Hex table definition from printhex.asm
+section '.data' data readable writeable
+hextable db '0123456789ABCDEF'
+hexstring rb 48
+db 0    ; end of string 
+filterstring rb 16
+db 0
+            </div>
+
+            <h3>Byte-to-Hex Conversion</h3>
+            <p>The conversion process handles each byte by separating high and low nibbles:</p>
+
+            <div class="code-block">
+; Byte to hex conversion algorithm
+lea ebx, [hextable]
+lea r15d, [hexstring]
+mov ecx, 16         ; 16 bytes at a time
+
+looop:
+    mov al, byte [edi]
+    and al, 0xf0    ; Get high nibble
+    shr al, 4
+    xlatb           ; Lookup in hex table
+    mov [r15d], al
+    inc r15d    
+
+    mov al, byte [edi]
+    and al, 0xf     ; Get low nibble
+    xlatb           ; Lookup in hex table
+    mov [r15d], al
+    inc r15d    
+
+    mov [r15d], byte 0x20  ; Add space
+    inc edi
+    inc r15d    
+loop looop
+            </div>
+
+            <h3>Address Display</h3>
+            <p>Each line shows the memory address offset for precise location tracking:</p>
+
+            <div class="code-block">
+; Address display format
+invoke printf, "0x%08x [ ", dword [row_address_print]
+
+; After processing line
+mov dword ecx, dword [hexprint_buffer_total_columns_to_display]
+add dword [row_address_print], dword ecx    ; Increment address
+            </div>
+        </section>
+
+        <section id="ascii-display">
+            <h2>ASCII Display Logic</h2>
+            <p>The tool provides ASCII representation alongside hex values, filtering non-printable characters for better readability.</p>
+
+            <h3>Character Filtering</h3>
+            <p>Non-printable characters are replaced with dots for better visual representation:</p>
+
+            <div class="code-block">
+; ASCII character filtering logic
+.iteration_loop_cols_ascii_start:
+    cmp r15b, byte [hexprint_buffer_total_columns_to_display]
+    je .iteration_loop_cols_ascii_end
+    
+    mov ecx, [esi]
+    cmp byte cl, 0x20        ; Check if >= space (32)
+    jge .check_ascii_readable_1
+    jmp .ascii_not_normal_print
+    
+.check_ascii_readable_1:
+    cmp byte cl, 0x7e        ; Check if <= tilde (126)
+    jle .ascii_normal_print
+    jmp .ascii_not_normal_print
+
+.ascii_normal_print:
+    mov [edi], byte cl       ; Store printable character
+    jmp .check_ascii_readable_1_out
+
+.ascii_not_normal_print:
+    mov [edi], byte 0x2e     ; Store dot (.) for non-printable
+
+.check_ascii_readable_1_out:
+    inc edi
+    inc esi
+    inc r15b
+    jmp .iteration_loop_cols_ascii_start
+            </div>
+
+            <h3>Display Format</h3>
+            <p>The output format combines hex values and ASCII representation:</p>
+
+            <div class="code-block">
+; Complete line display format
+invoke printf, "0x%08x [ ", dword [row_address_print]        ; Address
+invoke printf, "%s ] ", addr hexstring                        ; Hex values
+invoke printf, "[ %s ] ", addr filterstring                   ; ASCII representation
+call print_newline
+            </div>
+        </section>
+
+        <section id="performance-optimization">
+            <h2>Performance Optimization</h2>
+            <p>The FASM implementation includes several performance optimizations for efficient binary processing:</p>
+
+            <h3>Memory Access Optimization</h3>
+            <ul>
+                <li><strong>Direct Memory Access:</strong> Efficient byte-by-byte processing without intermediate buffers</li>
+                <li><strong>Register Usage:</strong> Optimal use of registers to minimize memory operations</li>
+                <li><strong>Loop Optimization:</strong> Efficient loop structures for processing large files</li>
+                <li><strong>String Operations:</strong> Direct string manipulation for hex conversion</li>
+            </ul>
+
+            <h3>Algorithm Efficiency</h3>
+            <div class="code-block">
+; Optimized processing loop
+iteration_loop_each_rows_start:
+    xor rcx, rcx        
+    cmp dword [hexprint_buffer_total_lines_to_display], r14d
+    je iteration_loop_each_rows_end
+    
+    ; Process 16 bytes per iteration
+    ; Convert to hex and ASCII simultaneously
+    ; Update address counter efficiently
+            </div>
+
+            <div class="highlight">
+                <strong>Performance Features:</strong>
+                <ul>
+                    <li>Single-pass file processing</li>
+                    <li>Efficient memory allocation (4MB limit)</li>
+                    <li>Optimized hex table lookup</li>
+                    <li>Minimal system calls</li>
+                    <li>Direct register manipulation</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="source-code">
+            <h2>Source Code and Repository</h2>
+            <p>My source code is located at: <a href="https://github.com/vlabsc/file_in_hex" class="github-link" target="_blank">https://github.com/vlabsc/file_in_hex</a></p>
+
+            <p>The repository contains the complete FASM source code for the file-in-hex tool, along with comprehensive documentation and usage examples. The code is well-structured and heavily commented for educational purposes.</p>
+
+            <h3>Build Instructions</h3>
+            <p>The tool can be built using FASM with a simple command:</p>
+
+            <div class="code-block">
+; Build command
+fasm fih.asm fih.exe
+            </div>
+
+            <h3>Usage Examples</h3>
+            <div class="code-block">
+; Command line usage
+fih.exe sample.exe
+fih.exe image.jpg
+fih.exe document.pdf
+            </div>
+
+            <div class="highlight">
+                <strong>Repository Contents:</strong>
+                <ul>
+                    <li>Complete FASM source code (5 files, ~863 lines total)</li>
+                    <li>Comprehensive documentation and README</li>
+                    <li>Build script (run.bat)</li>
+                    <li>Screenshot examples of tool output</li>
+                    <li>Detailed usage instructions</li>
+                </ul>
+            </div>
+
+            <p>The tool is designed to be educational and can serve as a reference implementation for understanding binary file analysis and FASM programming techniques.</p>
+        </section>
+
+        <section id="fasm-power-cybersecurity">
+            <h2>The Power of FASM in Cybersecurity</h2>
+            <p>FASM's unique characteristics make it an exceptional choice for cybersecurity tools and low-level programming projects. Its direct control over system resources and minimal abstraction layer provides capabilities that higher-level languages simply cannot match.</p>
+
+            <h3>Why FASM is Powerful for Security Tools</h3>
+            <ul>
+                <li><strong>Direct Memory Access:</strong> Complete control over memory layout and manipulation - <em>used in red-teaming for process injection and memory manipulation techniques</em></li>
+                <li><strong>Minimal Footprint:</strong> Extremely small executable sizes, perfect for embedded security tools - <em>used in exploit development for creating compact shellcode and payloads</em></li>
+                <li><strong>No Runtime Dependencies:</strong> Self-contained executables that don't rely on external libraries - <em>used in malware analysis for creating standalone analysis tools and unpackers</em></li>
+                <li><strong>Reverse Engineering Resistance:</strong> Difficult to analyze and reverse engineer - <em>used in red-teaming for creating stealthy tools that evade detection and analysis</em></li>
+                <li><strong>Real-time Performance:</strong> Near-native execution speed with predictable timing - <em>used in exploit development for timing-sensitive attacks and precision payload delivery</em></li>
+            </ul>
+
+            <h3>Notable FASM Projects in Cybersecurity</h3>
+            <p>The cybersecurity community has embraced FASM for various innovative projects:</p>
+
+            <div class="highlight">
+                <strong>Binary Analysis Tools:</strong> Researchers have built custom hex viewers and binary analysis tools using FASM for their ability to handle any file format and provide precise byte-level analysis.
+            </div>
+
+            <div class="highlight">
+                <strong>Memory Forensics:</strong> Many security researchers use FASM to create precise memory analysis tools that require exact control over memory layout and byte manipulation.
+            </div>
+
+            <div class="highlight">
+                <strong>File Format Analysis:</strong> Tools for analyzing unknown file formats and detecting malicious content through binary pattern recognition.
+            </div>
+
+            <div class="highlight">
+                <strong>Custom Loaders:</strong> Security professionals have created custom file loaders and analysis tools using FASM for their efficiency and precision.
+            </div>
+
+            <h3>Educational Value in Security</h3>
+            <p>Learning FASM provides deep insights into:</p>
+            <ul>
+                <li><strong>Binary Analysis:</strong> Understanding how files are structured at the byte level</li>
+                <li><strong>Memory Management:</strong> Direct experience with memory layout and addressing</li>
+                <li><strong>System Calls:</strong> How applications interact with the operating system</li>
+                <li><strong>File I/O Operations:</strong> Low-level file reading and processing</li>
+                <li><strong>Data Representation:</strong> Understanding hex, ASCII, and binary formats</li>
+            </ul>
+
+            <div class="code-block">
+; Example of FASM's power in binary analysis
+; Direct file reading without high-level abstractions
+invoke CreateFileA, filename, GENERIC_READ, 0, NULL, \
+                    OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL
+
+; Direct memory manipulation for hex conversion
+mov al, byte [edi]
+and al, 0xf0
+shr al, 4
+xlatb
+            </div>
+
+            <h3>Community and Resources</h3>
+            <p>The FASM community includes many security researchers and reverse engineers who contribute to:</p>
+            <ul>
+                <li><strong>Binary Analysis Frameworks:</strong> Various hex viewers and analysis tools</li>
+                <li><strong>Educational Projects:</strong> Learning resources for assembly programming</li>
+                <li><strong>File Format Research:</strong> Tools for analyzing unknown file structures</li>
+                <li><strong>Memory Analysis Tools:</strong> Custom tools for forensic analysis</li>
+            </ul>
+
+            <p>This rich ecosystem of security-focused projects demonstrates why FASM remains a valuable skill for cybersecurity professionals and why choosing it for this hex viewer project aligns with both educational goals and practical security tool development.</p>
+        </section>
+
+        <section id="conclusion">
+            <h2>Conclusion</h2>
+            <p>This file-in-hex tool demonstrates the power and efficiency of FASM assembly language for binary analysis tasks. By providing comprehensive hex viewing capabilities for any file format, the tool serves as an excellent educational resource and practical utility for binary analysis.</p>
+
+            <p>The implementation showcases several important concepts:</p>
+            <ul>
+                <li><strong>Assembly Programming:</strong> Direct memory manipulation and efficient register usage</li>
+                <li><strong>Binary Analysis:</strong> Complete understanding of file structure and byte-level processing</li>
+                <li><strong>Memory Management:</strong> Efficient allocation and processing of large files</li>
+                <li><strong>Data Conversion:</strong> Efficient algorithms for hex and ASCII representation</li>
+            </ul>
+
+            <div class="highlight">
+                <strong>Future Enhancements:</strong> The tool could be extended with search functionality, pattern recognition, file format detection, and support for larger files. The modular architecture makes it easy to add new analysis capabilities while maintaining the existing functionality.
+            </div>
+
+            <p>The combination of FASM's efficiency and the tool's comprehensive feature set makes it an excellent choice for developers and security researchers who need to understand binary file internals or build upon this foundation for more advanced binary analysis tools.</p>
+        </section>
+
+        <a href="../../index.html" class="back-link">← Back to Home</a>
+    </div>
+</body>
+</html> 

@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReconWin: An Open Source Threat Hunting Tool for Windows</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2em;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 3em;
+            border-bottom: 2px solid #00ff00;
+            padding-bottom: 2em;
+        }
+        h1 {
+            font-size: 3em;
+            margin-bottom: 0.5em;
+            color: #00ff00;
+        }
+        .subtitle {
+            font-size: 1.2em;
+            color: #cccccc;
+            font-style: italic;
+        }
+        .meta {
+            color: #888888;
+            font-size: 0.9em;
+            margin-top: 1em;
+        }
+        h2 {
+            font-size: 2em;
+            color: #00ff00;
+            margin-top: 2em;
+            margin-bottom: 1em;
+            border-left: 4px solid #00ff00;
+            padding-left: 1em;
+        }
+        h3 {
+            font-size: 1.5em;
+            color: #00ff00;
+            margin-top: 1.5em;
+            margin-bottom: 0.8em;
+        }
+        p {
+            font-size: 1.1em;
+            margin-bottom: 1.5em;
+            text-align: justify;
+        }
+        .image-container {
+            text-align: center;
+            margin: 2em 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+        }
+        .image-caption {
+            color: #888888;
+            font-size: 0.9em;
+            margin-top: 0.5em;
+            font-style: italic;
+        }
+        .code-block {
+            background-color: #1a1a1a;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 1em;
+            margin: 1.5em 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.4;
+        }
+        .highlight {
+            background-color: #1a1a1a;
+            border-left: 4px solid #ff6b6b;
+            padding: 1em;
+            margin: 1.5em 0;
+        }
+        .back-link {
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            font-size: 1.1em;
+            padding: 0.8em 1.5em;
+            border: 2px solid white;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            margin-top: 2em;
+        }
+        .back-link:hover {
+            background-color: white;
+            color: black;
+        }
+        .toc {
+            background-color: #1a1a1a;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 1.5em;
+            margin: 2em 0;
+        }
+        .toc h3 {
+            margin-top: 0;
+        }
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .toc li {
+            margin-bottom: 0.5em;
+        }
+        .toc a {
+            color: #00ff00;
+            text-decoration: none;
+        }
+        .toc a:hover {
+            text-decoration: underline;
+        }
+        .github-link {
+            color: #00ff00;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .github-link:hover {
+            text-decoration: underline;
+        }
+        ul {
+            margin-bottom: 1.5em;
+        }
+        li {
+            margin-bottom: 0.5em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>ReconWin: An Open Source Threat Hunting Tool</h1>
+            <div class="subtitle">Comprehensive Windows System Reconnaissance and Threat Detection</div>
+            <div class="meta">
+                Published: December 15, 2024 | Author: SV | Reading Time: 20 minutes
+            </div>
+        </div>
+
+        <div class="toc">
+            <h3>📋 Table of Contents</h3>
+            <ul>
+                <li><a href="#introduction">1. Introduction</a></li>
+                <li><a href="#project-overview">2. Project Overview</a></li>
+                <li><a href="#architecture">3. Tool Architecture</a></li>
+                <li><a href="#core-modules">4. Core Modules and Functionality</a></li>
+                <li><a href="#hardware-probing">5. Hardware Information Probing</a></li>
+                <li><a href="#windows-system-probing">6. Windows System Probing</a></li>
+                <li><a href="#file-system-analysis">7. File System Analysis</a></li>
+                <li><a href="#windows-events-analysis">8. Windows Events Analysis</a></li>
+                <li><a href="#network-probing">9. Network Information Probing</a></li>
+                <li><a href="#source-code">10. Source Code and Repository</a></li>
+                <li><a href="#future-enhancements">11. Future Enhancements</a></li>
+                <li><a href="#conclusion">12. Conclusion</a></li>
+            </ul>
+        </div>
+
+        <section id="introduction">
+            <h2>Introduction</h2>
+            <p>ReconWin is an open-source learning project developed around 4 years ago to explore Rust and Windows programming. Built in Rust, this comprehensive reconnaissance tool demonstrates how to interact with Windows system APIs and provides practical experience with system-level programming concepts.</p>
+            
+            <p>It's worth noting that this project was developed at a time when Rust was still evolving, and the ecosystem has grown significantly since then. Today, Rust offers many more capabilities and a much richer ecosystem of crates (libraries) that would make building such a tool even more powerful and efficient. The language has matured considerably, with improved tooling, better Windows support, and more comprehensive libraries for system programming tasks.</p>
+
+            <p>The tool is designed to probe various aspects of a Windows system, from hardware information to Windows events, providing a holistic view of the system state. While it serves as a practical learning example, it also demonstrates the foundational concepts of Windows system reconnaissance that remain relevant today.</p>
+
+            <p>ReconWin leverages Rust's memory safety and performance characteristics to provide reliable and efficient system reconnaissance capabilities. The modular architecture allows for easy extension and customization, making it suitable for learning various security and system programming concepts.</p>
+
+            <div class="image-container">
+                <img src="reconwin-main/img/img1.JPG" alt="ReconWin Main Interface">                
+                <div class="image-caption">ReconWin main interface showing the command-line interface</div>
+            </div>
+
+            <div class="image-container">
+                <img src="reconwin-main/img/img2.JPG" alt="Hardware Probing Results">                
+                <div class="image-caption">Hardware information probing results</div>
+            </div>
+
+            <div class="image-container">
+                <img src="reconwin-main/img/img3.JPG" alt="Windows System Information">                
+                <div class="image-caption">Windows system information and user details</div>
+            </div>
+            
+        </section>
+
+        <section id="project-overview">
+            <h2>Project Overview</h2>
+            <p>ReconWin is a version 0.6.0 implementation that provides comprehensive Windows system reconnaissance capabilities. It's written entirely in Rust, making it memory-safe, fast, and efficient for analyzing Windows systems.</p>
+
+            <h3>Key Features</h3>
+            <ul>
+                <li><strong>Hardware Probing:</strong> CPU details, disk information, network interfaces, memory details</li>
+                <li><strong>Windows System Analysis:</strong> OS details, user accounts, user directories</li>
+                <li><strong>File System Probing:</strong> User data directories, temp directory, app data, program files, system32, desktop directory</li>
+                <li><strong>Windows Events Analysis:</strong> Comprehensive Windows event log analysis</li>
+                <li><strong>Registry Analysis:</strong> Installed applications, startup applications</li>
+                <li><strong>Network Information:</strong> Network adapters, IP addresses, DNS servers</li>
+            </ul>
+
+            <h3>Current Implementation</h3>
+            <p>The tool currently implements the following core functionality:</p>
+            <ul>
+                <li>Hardware-related information probing</li>
+                <li>Windows-related information gathering</li>
+                <li>Windows file system analysis</li>
+                <li>Windows events analysis</li>
+                <li>Windows registry analysis</li>
+            </ul>
+        </section>
+
+        <section id="architecture">
+            <h2>Tool Architecture</h2>
+            <p>ReconWin is built with a modular architecture that separates different reconnaissance capabilities into distinct modules. This design allows for easy maintenance, testing, and extension of functionality.</p>
+
+            <h3>Core Dependencies</h3>
+            <div class="code-block">[dependencies]
+num_cpus = "1.14.0"
+sysinfo = "0.26.7"
+colored = "2.0.0"
+chrono = "0.4.23"
+winreg = "0.10"
+local-ip-address = "0.4.9"
+cli-clipboard = "0.3.0"
+directories = "4.0.1"
+walkdir = "2"
+evtx = "0.8.0"
+xml-rs = "0.8"
+is-root = "0.1.2"
+ipconfig = "0.3.1"
+battery = "0.7.8"</div>
+
+            <p>These dependencies provide the foundation for system information gathering, Windows-specific operations, and event log parsing capabilities.</p>
+
+            <h3>Module Structure</h3>
+            <ul>
+                <li><strong>main.rs:</strong> Core application logic and command-line interface</li>
+                <li><strong>probe_hardware.rs:</strong> Hardware information gathering</li>
+                <li><strong>probe_windows.rs:</strong> Windows system information</li>
+                <li><strong>probe_windows_files.rs:</strong> File system analysis</li>
+                <li><strong>probe_windows_events.rs:</strong> Windows event log analysis</li>
+                <li><strong>probe_network.rs:</strong> Network information gathering</li>
+                <li><strong>disk.rs:</strong> Disk information utilities</li>
+                <li><strong>mem.rs:</strong> Memory information utilities</li>
+            </ul>
+        </section>
+
+        <section id="core-modules">
+            <h2>Core Modules and Functionality</h2>
+            <p>ReconWin's functionality is organized into several core modules, each responsible for specific aspects of system reconnaissance.</p>
+
+            <h3>Command-Line Interface</h3>
+            <p>The tool provides an interactive command-line interface with the following main commands:</p>
+            <div class="code-block">rewin> hardware / hw        - probe hardware related information
+rewin> windows / win        - probe windows related information
+rewin> network / nw         - probe network related information
+rewin> hunt                 - threat hunting module (TODO)
+rewin> cls / clear          - clears the screen
+rewin> version / ver / v    - get the version
+rewin> help / ? / h         - get available commands
+rewin> quit / exit / q / e  - quit or exit program</div>
+
+            <h3>Module Navigation</h3>
+            <p>Each module provides its own submenu with specific commands for that area of reconnaissance. Users can navigate between modules and return to the main menu using the ".." command.</p>
+        </section>
+
+        <section id="hardware-probing">
+            <h2>Hardware Information Probing</h2>
+            <p>The hardware probing module provides comprehensive information about the system's hardware components.</p>
+
+            <h3>CPU Information</h3>
+            <p>The CPU probing functionality gathers detailed information about the processor:</p>
+            <div class="code-block">pub fn get_cpu_logical_cores(&mut self) {
+    let sys = System::new_all();
+    
+    self.info_cpu = format!("hardware probe - cpu ...\n").cyan().bold().to_string();
+    self.info_cpu.push_str(format!("number of logical cores: {}\n", num_cpus::get()).as_str());
+    
+    for cpu in sys.cpus() {
+        self.info_cpu.push_str(format!("{}% - {} Mhz - {} - {} - {}\n", 
+            cpu.cpu_usage(), cpu.frequency(), cpu.vendor_id(), 
+            cpu.name(), cpu.brand()).as_str());
+    }
+}</div>
+
+            <h3>Available Hardware Commands</h3>
+            <ul>
+                <li><strong>cpu:</strong> Display CPU information including usage, frequency, vendor, and brand</li>
+                <li><strong>disks:</strong> Show disk information and storage details</li>
+                <li><strong>mem:</strong> Display memory information and usage</li>
+                <li><strong>nis:</strong> Show network interface information</li>
+                <li><strong>all:</strong> Display all hardware information</li>
+            </ul>
+        </section>
+
+        <section id="windows-system-probing">
+            <h2>Windows System Probing</h2>
+            <p>The Windows system probing module provides comprehensive information about the Windows operating system and user environment.</p>
+
+            <h3>OS Details</h3>
+            <p>The tool can gather detailed operating system information:</p>
+            <div class="code-block">pub fn probe_windows_osdetails(&mut self) {
+    let sys = System::new_all();
+    
+    self.info_windows_osdetails = format!("os details ... \n").cyan().bold().to_string();
+    self.info_windows_osdetails.push_str(format!("name: {}\n", 
+        sys.name().as_deref().unwrap()).as_str());
+    self.info_windows_osdetails.push_str(format!("kernel version: {}\n", 
+        sys.kernel_version().as_deref().unwrap()).as_str());
+    self.info_windows_osdetails.push_str(format!("os version: {}\n", 
+        sys.os_version().as_deref().unwrap()).as_str());
+    self.info_windows_osdetails.push_str(format!("host name: {}\n", 
+        sys.host_name().as_deref().unwrap()).as_str());
+    self.info_windows_osdetails.push_str(format!("uptime: {} hours, {} minutes, {} seconds\n", 
+        uptime_inhours, uptime_inminutes, uptime_inseconds).as_str());
+}</div>
+
+            <h3>User Account Information</h3>
+            <p>The tool can enumerate user accounts and their details:</p>
+            <div class="code-block">pub fn probe_windows_users(&mut self) {
+    let sys = System::new_all();
+    
+    self.info_windows_users = format!("windows user accounts ... \n").cyan().bold().to_string();
+    
+    for user in sys.users() {
+        self.info_windows_users.push_str(format!("user: {}, user id: {}, gid: {}, in groups: {}\n",
+            user.name(), &user.id().to_string(), *user.group_id(), user.groups().len()).as_str());
+    }
+}</div>
+
+            <h3>Registry Analysis</h3>
+            <p>ReconWin can analyze Windows registry for installed applications and startup programs:</p>
+            <div class="code-block">pub fn probe_windows_installed_applications(&mut self) {
+    self.info_windows_installed_applications = format!("installed applications - windows registry ... \n").cyan().bold().to_string();
+    
+    let hklm = winreg::RegKey::predef(HKEY_LOCAL_MACHINE);
+    let subkey = hklm.open_subkey_with_flags(r#"Software\Microsoft\Windows\CurrentVersion\Uninstall"#, KEY_READ)
+        .expect("Failed to open Registry");
+    
+    for key in subkey.enum_keys() {
+        let _ = key.and_then(|key| subkey.open_subkey_with_flags(key, KEY_READ))
+                .and_then(|program_key| program_key.get_value("DisplayName"))
+                .and_then(|name: String| {
+                    self.info_windows_installed_applications.push_str(format!("{}\n", name).as_str());
+                    Ok(())
+                });
+    }
+}</div>
+
+            <h3>Available Windows Commands</h3>
+            <ul>
+                <li><strong>os:</strong> Display operating system details</li>
+                <li><strong>users:</strong> Show user account information</li>
+                <li><strong>processes:</strong> List running processes</li>
+                <li><strong>clipboard:</strong> Get clipboard contents</li>
+                <li><strong>iapps:</strong> Show installed applications</li>
+                <li><strong>sapps:</strong> Show startup applications</li>
+                <li><strong>pwd:</strong> Show present working directory</li>
+                <li><strong>datetime:</strong> Show current date and time</li>
+                <li><strong>isadmin:</strong> Check if running as administrator</li>
+                <li><strong>all:</strong> Display all Windows information</li>
+            </ul>
+        </section>
+
+        <section id="file-system-analysis">
+            <h2>File System Analysis</h2>
+            <p>The file system analysis module provides detailed information about Windows file system structure and contents.</p>
+
+            <h3>Directory Probing</h3>
+            <p>ReconWin can analyze various important Windows directories:</p>
+            <ul>
+                <li><strong>User Data Directories:</strong> User profile directories and personal files</li>
+                <li><strong>Temp Directories:</strong> Temporary files and system temp directories</li>
+                <li><strong>App Data:</strong> Application data directories</li>
+                <li><strong>Program Files:</strong> Installed program directories (32-bit and 64-bit)</li>
+                <li><strong>System32:</strong> Windows system files directory</li>
+                <li><strong>Desktop:</strong> User desktop directory contents</li>
+            </ul>
+
+            <h3>Available File System Commands</h3>
+            <ul>
+                <li><strong>ud:</strong> User data directories</li>
+                <li><strong>pfiles:</strong> Program Files directory</li>
+                <li><strong>pfiles86:</strong> Program Files (x86) directory</li>
+                <li><strong>sys32:</strong> System32 directory</li>
+                <li><strong>windows:</strong> Windows directory</li>
+                <li><strong>windows_system32:</strong> Windows\System32 directory</li>
+                <li><strong>appdata:</strong> AppData directory</li>
+                <li><strong>local:</strong> Local directory</li>
+                <li><strong>localtemp:</strong> Local temp directory</li>
+                <li><strong>temp:</strong> Temp directory</li>
+                <li><strong>desktop:</strong> Desktop directory</li>
+            </ul>
+        </section>
+
+        <section id="windows-events-analysis">
+            <h2>Windows Events Analysis</h2>
+            <p>The Windows events analysis module provides comprehensive analysis of Windows event logs, which are crucial for threat hunting and incident response.</p>
+
+            <h3>Event Log Types</h3>
+            <p>ReconWin can analyze various Windows event log types:</p>
+            <ul>
+                <li><strong>Application Logs:</strong> Application-related events and errors</li>
+                <li><strong>Security Logs:</strong> Security-related events and audit logs</li>
+                <li><strong>Setup Logs:</strong> System setup and installation events</li>
+                <li><strong>System Logs:</strong> System-level events and errors</li>
+                <li><strong>Forwarded Events:</strong> Events forwarded from other systems</li>
+            </ul>
+
+            <h3>Event Analysis Features</h3>
+            <p>The tool provides detailed event analysis including:</p>
+            <ul>
+                <li>Event record IDs and timestamps</li>
+                <li>Event providers and sources</li>
+                <li>Event levels (Critical, Error, Warning, Informational, Verbose)</li>
+                <li>Task categories and process IDs</li>
+                <li>Thread IDs and execution context</li>
+            </ul>
+
+            <h3>Available Event Commands</h3>
+            <ul>
+                <li><strong>application:</strong> Analyze application event logs</li>
+                <li><strong>security:</strong> Analyze security event logs</li>
+                <li><strong>setup:</strong> Analyze setup event logs</li>
+                <li><strong>system:</strong> Analyze system event logs</li>
+                <li><strong>happ:</strong> Count application events</li>
+                <li><strong>hsec:</strong> Count security events</li>
+                <li><strong>hset:</strong> Count setup events</li>
+                <li><strong>hsys:</strong> Count system events</li>
+                <li><strong>hfe:</strong> Count forwarded events</li>
+                <li><strong>htot:</strong> Count total events</li>
+            </ul>
+        </section>
+
+        <section id="network-probing">
+            <h2>Network Information Probing</h2>
+            <p>The network probing module provides information about network interfaces, IP addresses, and network configuration.</p>
+
+            <h3>Network Interface Information</h3>
+            <p>ReconWin can gather detailed network interface information including:</p>
+            <ul>
+                <li>Network adapter details</li>
+                <li>IP addresses (local and public)</li>
+                <li>DNS server configuration</li>
+                <li>Network interface status</li>
+                <li>MAC addresses</li>
+            </ul>
+
+            <h3>Available Network Commands</h3>
+            <ul>
+                <li><strong>nis:</strong> Show network interface information</li>
+                <li><strong>dns:</strong> Show DNS server information</li>
+            </ul>
+        </section>
+
+        <section id="source-code">
+            <h2>Source Code and Repository</h2>
+            <p>ReconWin is an open-source project written in Rust, making it accessible for security professionals and researchers to study, modify, and contribute to.</p>
+
+            <h3>Project Structure</h3>
+            <div class="code-block">reconwin-main/
+├── src/
+│   ├── main.rs                    # Main application logic
+│   ├── probe_hardware.rs          # Hardware information gathering
+│   ├── probe_windows.rs           # Windows system information
+│   ├── probe_windows_files.rs     # File system analysis
+│   ├── probe_windows_events.rs    # Windows event log analysis
+│   ├── probe_network.rs           # Network information gathering
+│   ├── disk.rs                    # Disk utilities
+│   ├── mem.rs                     # Memory utilities
+│   └── tester.rs                  # Testing utilities
+├── Cargo.toml                     # Rust project configuration
+├── README.md                      # Project documentation
+└── img/                           # Screenshots and images</div>
+
+            <h3>Key Source Files</h3>
+            <ul>
+                <li><strong>main.rs (1,438 lines):</strong> Core application logic, command-line interface, and module coordination</li>
+                <li><strong>probe_windows_events.rs (838 lines):</strong> Windows event log parsing and analysis</li>
+                <li><strong>probe_windows_files.rs (329 lines):</strong> File system analysis and directory probing</li>
+                <li><strong>probe_windows.rs (257 lines):</strong> Windows system information gathering</li>
+                <li><strong>probe_network.rs (71 lines):</strong> Network information gathering</li>
+            </ul>
+
+            <h3>Installation and Usage</h3>
+            <p>To build and run ReconWin:</p>
+            <div class="code-block"># Clone the repository
+git clone https://github.com/vlabsc/reconwin.git
+
+# Navigate to the project directory
+cd reconwin
+
+# Build the project
+cargo build --release
+
+# Run the tool
+cargo run</div>
+
+            <p>Alternatively, you can use the provided batch file:</p>
+            <div class="code-block">run.bat</div>
+        </section>
+
+        <section id="future-enhancements">
+            <h2>Future Enhancements</h2>
+            <p>ReconWin is actively developed with plans for significant enhancements to transform it into a comprehensive endpoint security management tool.</p>
+
+            <h3>Planned Features</h3>
+            <ul>
+                <li><strong>Enhanced Threat Hunting:</strong> Advanced threat hunting capabilities with automated detection of common attack patterns</li>
+                <li><strong>Endpoint Security Management:</strong> Integration with endpoint security platforms and centralized management</li>
+                <li><strong>Real-time Monitoring:</strong> Continuous system monitoring and alerting capabilities</li>
+                <li><strong>Forensic Analysis:</strong> Enhanced forensic analysis tools and timeline generation</li>
+                <li><strong>Reporting and Visualization:</strong> Comprehensive reporting and data visualization features</li>
+                <li><strong>API Integration:</strong> REST API for integration with other security tools</li>
+                <li><strong>Cloud Integration:</strong> Support for cloud-based threat intelligence and analysis</li>
+            </ul>
+
+            <h3>Development Roadmap</h3>
+            <p>The development team plans to:</p>
+            <ul>
+                <li>Increase the tool's capability into a full endpoint security management solution</li>
+                <li>Implement comprehensive threat hunting capabilities</li>
+                <li>Add support for additional Windows event types and sources</li>
+                <li>Enhance the user interface and user experience</li>
+                <li>Add support for automated response actions</li>
+            </ul>
+        </section>
+
+        <section id="conclusion">
+            <h2>Conclusion</h2>
+            <p>ReconWin represents an excellent learning project for Rust and Windows programming. While it provides useful system reconnaissance capabilities, it's important to note that this is not a full-fledged threat hunting tool, and calling it as such would not do justice to the actual purpose and scope of the project.</p>
+
+            <p>The main intention behind creating this tool was to learn Rust and Windows programming using Rust. The project serves as a practical way to explore Windows system APIs, understand Rust's memory safety features, and gain hands-on experience with system-level programming concepts. The modular architecture and comprehensive functionality demonstrate effective use of Rust's features for Windows development.</p>
+
+            <p>For developers interested in learning Rust for Windows programming, ReconWin offers a valuable example of how to interact with Windows APIs, handle system information, and build command-line tools. The project showcases Rust's capabilities in system programming while providing practical utility for basic system reconnaissance tasks.</p>
+
+            <div class="highlight">
+                <p><strong>Key Takeaways:</strong></p>
+                <ul>
+                    <li>Excellent learning project for Rust and Windows programming</li>
+                    <li>Demonstrates practical use of Rust for system-level development</li>
+                    <li>Modular architecture showcasing Rust's organizational capabilities</li>
+                    <li>Comprehensive Windows API integration examples</li>
+                    <li>Open-source project suitable for educational purposes</li>
+                    <li>Foundation for more advanced Windows development projects</li>
+                </ul>
+            </div>
+
+            <p>ReconWin demonstrates how Rust can be effectively used for Windows system programming and serves as an excellent starting point for developers looking to learn both Rust and Windows development concepts. While it may not be a production-ready threat hunting tool, it provides valuable insights into building system reconnaissance utilities with modern, memory-safe programming languages.</p>
+        </section>
+
+        <a href="../../index.html" class="back-link">← Back to Home</a>
+    </div>
+</body>
+</html> 
