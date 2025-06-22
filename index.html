@@ -3,22 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hello World</title>
+    <title>My Blog</title>
     <style>
         body {
             background-color: black;
             color: white;
-            font-family: 'Courier New', monospace;
-            font-size: 24px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            font-family: 'Arial', sans-serif;
             margin: 0;
+            padding: 2em;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 1em;
+            text-align: center;
+        }
+        h3 {
+            font-size: 1.8em;
+            margin-bottom: 1em;
+            color: #00ff00;
+        }
+        ul {
+            list-style: disc;
+            padding-left: 2em;
+        }
+        li {
+            margin-bottom: 1em;
+            font-size: 1.2em;
+        }
+        a {
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        a:hover {
+            color: #00ff00;
+            text-decoration: underline;
+        }
+        
+        /* Image caption styles */
+        .image-caption {
+            text-align: center;
+            font-style: italic;
+            color: #888888;
+            font-size: 0.9em;
+            margin-top: 0.5em;
+        }
+        
+        .image-container {
+            text-align: center;
+            margin: 2em 0;
+        }
+        
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid #00ff00;
+            border-radius: 10px;
         }
     </style>
 </head>
 <body>
-    printf("Hello, World!");
+    <div class="container">
+        <h2>VlabsC - Space for Tools, Experiments, and Ideas</h2>
+        <h3>Blogs</h3>
+        <ul>
+            <li><a href="blog/story1/silent-sabotage-what-happens-when-your-llm-is-backdoored-08-06-2025.html">Silent Sabotage: Backdooring LLMs</a></li>
+            <li><a href="blog/story2/gandalf_how_i_solved_18_06_2025.html">Gandalf AI Challenge: A Prompt Adventure</a></li>
+            <li><a href="blog/story3/retro-computing-series-before-defender-a-look-back-at-msav-and-cpav_21_06_2025.html">CPAV & 90s Anti-Virus Tools: A Nostalgic Dive</a></li>
+        </ul>
+        
+        
+
+    </div>
 </body>
-</html> 
+</html>

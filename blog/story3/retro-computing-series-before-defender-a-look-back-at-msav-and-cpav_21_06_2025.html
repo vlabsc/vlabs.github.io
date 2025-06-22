@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Silent Sabotage: What Happens When Your LLM Is Backdoored?</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2em;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 3em;
+            border-bottom: 2px solid #00ff00;
+            padding-bottom: 2em;
+        }
+        h1 {
+            font-size: 3em;
+            margin-bottom: 0.5em;
+            color: #00ff00;
+        }
+        .subtitle {
+            font-size: 1.2em;
+            color: #cccccc;
+            font-style: italic;
+        }
+        .meta {
+            color: #888888;
+            font-size: 0.9em;
+            margin-top: 1em;
+        }
+        h2 {
+            font-size: 2em;
+            color: #00ff00;
+            margin-top: 2em;
+            margin-bottom: 1em;
+            border-left: 4px solid #00ff00;
+            padding-left: 1em;
+        }
+        h3 {
+            font-size: 1.5em;
+            color: #00ff00;
+            margin-top: 1.5em;
+            margin-bottom: 0.8em;
+        }
+        p {
+            font-size: 1.1em;
+            margin-bottom: 1.5em;
+            text-align: justify;
+        }
+        .image-container {
+            text-align: center;
+            margin: 2em 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+        }
+        .image-caption {
+            color: #888888;
+            font-size: 0.9em;
+            margin-top: 0.5em;
+            font-style: italic;
+        }
+        .code-block {
+            background-color: #1a1a1a;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 1em;
+            margin: 1.5em 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        .highlight {
+            background-color: #1a1a1a;
+            border-left: 4px solid #ff6b6b;
+            padding: 1em;
+            margin: 1.5em 0;
+        }
+        .back-link {
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            font-size: 1.1em;
+            padding: 0.8em 1.5em;
+            border: 2px solid white;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            margin-top: 2em;
+        }
+        .back-link:hover {
+            background-color: white;
+            color: black;
+        }
+        .toc {
+            background-color: #1a1a1a;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 1.5em;
+            margin: 2em 0;
+        }
+        .toc h3 {
+            margin-top: 0;
+        }
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .toc li {
+            margin-bottom: 0.5em;
+        }
+        .toc a {
+            color: #00ff00;
+            text-decoration: none;
+        }
+        .toc a:hover {
+            text-decoration: underline;
+        }
+        .italic-text {
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Retro Computing Series — Before Defender</h1>
+            <div class="subtitle">A Look Back at MSAV and CPAV</div>
+            <div class="meta">
+                Published: June 21, 2025 | Author: SV | Reading Time: 8 minutes
+            </div>
+        </div>
+
+        <h3>Introduction</h3>
+        <p>Back in the 90s, we used computers that ran on floppy disks — the big 5.25-inch ones with just 1.2 MB space. The screen used to be black with white text, memory was limited to 640 KB or 1 MB, and most systems did not even have a hard disk. We typed every command by hand, no internet those days!</p>
+
+        <p>Every two weeks, I will be (will try) sharing small stories and memories from those times — tools we used, games we played, operating systems like MS-DOS, and simple software that made us excited back then.</p>
+
+        <p>If you have ever seen the A:\> prompt or used a floppy to copy files, or even if you’re just curious about how people used computers before everything went online — then you’ll enjoy this series.</p>
+
+        <p>I want to thank the website dosdays.co.uk for keeping so much old computing knowledge alive. It helped me remember many things from the 90s and also discover new ones.</p>
+
+        <h3>Before Defender: A Look Back at MSAV and CPAV</h3>
+        <p>If you think Microsoft Defender has always been there quietly protecting your computer, let me take you back to the time when we had to run antivirus tools manually in DOS. Files were scanned one by one on those big CRT monitors.</p>
+
+        <p>I am talking about MSAV and CPAV — two tools that helped us fight boot-sector viruses and file infections. I recently tried running MSAV.EXE and CPAV.EXE using DOSBox, just to bring back those old memories. And it really felt like going back in time.</p>
+
+        <h3>The Simpler Days of CPAV</h3>
+        <p>CPAV (Central Point Anti-Virus) was an antivirus tool used in DOS during the early 90s. It was made by a company called Central Point Software — the same people who created the well-known PC Tools.</p>
+
+        <p>The CPAV files were usually arranged like this:</p>
+
+        <div class="image-container">
+            <img src="img1.png" alt="Description">            
+        </div>
+
+        <p>In those days, CPAV did not run in the background like today’s antivirus. You had to open it manually by typing something like:</p>
+
+        <p>A:\> CPAV.EXE</p>
+
+        <p>Once you run it, you will see a colourful text screen with menu options, scan settings, and alerts. First, it checks if any virus is already in the memory.</p>
+
+        <div class="image-container">
+            <img src="img2.png" alt="Description">            
+        </div>
+
+        <p>The best part was, you could see the files getting scanned one by one. On one side, the file names would scroll, and below that, a small bar would keep moving. It looked like the virus was getting caught right in front of you.</p>
+
+        <div class="image-container">
+            <img src="img3.png" alt="Description">            
+        </div>
+
+
+        <p>Once the scan is completed, a summary of files and directories scanned is displayed.</p>
+
+        <div class="image-container">
+            <img src="img4.png" alt="Description">            
+        </div>
+
+
+        <div class="image-container">
+            <img src="img5.png" alt="Description">            
+        </div>
+
+        <p>Look how the configuration files were kept .. The CPAV.ini file…</p>
+        <p>The CPAV.INI file was used to store the configuration settings for CPAV. It was a simple text file that contained the settings for the antivirus program.</p>
+
+
+
+        <div class="image-container">
+            <img src="img6.png" alt="Description">            
+        </div>
+
+        <p>The menus and Options were exhaustive and look at the way the menu bars and options were designed during 90s.</p>
+
+        <h3>From CPAV to MSAV — Microsoft Enters the Game</h3>
+        <p>Later, Microsoft took CPAV and used it as their own antivirus. They renamed it as MSAV (Microsoft Anti-Virus) and included it with MS-DOS 6. So no need to install it separately.</p>
+
+        <p>You could open it by typing:</p>
+
+        <p>C:\> MSAV</p>
+
+        <p>It looked almost the same as CPAV, just with Microsoft’s name on it.</p>
+
+        <div class="image-container">
+            <img src="img8.png" alt="Description">            
+        </div>
+
+        <p>Look at the similarity between MSAV and CPAV (image source Wikipedia)</p>
+
+        <p>MSAV had a few useful options that were easy to use.</p>
+
+<li>Scan memory — It first checked if any virus was already loaded in the system memory.</li>
+
+<li>Check boot sector — It could check the boot sector of floppy or hard disk, where many old viruses used to hide.</li>
+
+<li>Scan full hard disk or floppies — You could scan the full drive or just the floppy disk to see if any file was infected.</li>
+
+<li>Schedule scan — You could set it to scan at a particular time automatically.</li>
+
+<li>Load VSAFE.EXE — This was a small program that stayed in memory and kept watching in the background. It showed alerts if any program tried to do something suspicious.</li>
+
+        <h3>What felt cool back then</h3>
+        <p>Those days, viruses like Stoned, Michelangelo, and Form were very common. Running MSAV felt serious, like doing some urgent work. When it showed “No virus found,” we used to feel relaxed.</p>
+
+        <p>And when VSAFE gave a warning while opening a .COM or .EXE file, it looked advanced for that time — like the computer was really watching.</p>
+
+        <h3>So What Happened to CPAV?</h3>
+        <p>In 1994, Symantec (the company behind Norton) bought Central Point Software. After that, CPAV slowly disappeared, and many of its features were added into Norton Antivirus.</p>
+
+        <p>MSAV also stopped coming in later Windows versions, as most people started using antivirus software with proper menus and mouse support. Norton and McAfee became more popular during that time.</p>
+
+        <p>Microsoft came back into antivirus only in 2005, after big viruses like Blaster and Sasser caused problems. That’s when they started Windows Defender.</p>
+
+        <h3>Final Thoughts</h3>
+        <p>Things have changed a lot now. Earlier, we used to type MSAV in a black-and-white screen. Now, Defender works on its own using AI and cloud scanning, and we do not even notice it.</p>
+
+        <p>But those old tools had a different feel. You could see everything. You ran the scan yourself. You selected the floppy drive. You pressed “Y” to remove a virus. It was not automatic — you were fully involved in protecting the system.</p>
+
+        <h3>CPAV’s Strengths — Ahead of Its Time</h3>
+        <p>Central Point Anti-Virus (CPAV) was not just a basic scanner, it was a seriously smart tool for its era. Here’s what made it stand out in the early 90s:</p>
+
+        <li>Real-time protection using TSR (CPAVTSR.EXE)</li>
+        
+        <p>CPAV could stay in memory and keep watching quietly. If any file was changed, opened, or if something touched the boot sector, it would alert. This kind of real-time checking was not common before Windows 95.</p>
+        
+        <li>Heuristic checking</li>
+        
+        <p>Even if the virus name was not known, CPAV could catch it by looking at suspicious behaviour — like if a file tried to copy itself or change code. This was an early method of checking without depending only on known virus names.</p>
+        
+        <li>Boot sector and memory scanning</li>
+        
+        <p>It could check the boot sector of floppy and hard disk — many viruses like Stoned, Form, or Michelangelo used to hide there. It also scanned the system memory before loading any program.</p>
+        
+        <li>Updates through floppy</li>
+        
+        <p>There was no internet in those days. So we got virus updates through floppy disks — sometimes from computer magazines, or sometimes a friend who had the latest files. These updates came as .DAT or .DEF files.</p>
+        
+        <li>Simple UI with keyboard support</li>
+        
+        <p>Even though it was a DOS program, CPAV had proper menus. You could use mouse also, but it was fully usable with just the keyboard. It was easy for both home users and office staff.</p>
+        
+        <li>Clean-up and report</li>
+        
+        <p>CPAV tried to clean the virus without deleting the file, if possible. It also kept a small log file, so you could check what was scanned or cleaned later.</p>
+        
+        <h3>The Story Behind Microsoft Licensing CPAV</h3>
+        
+        <p>Back in the early 90s, Microsoft was preparing MS-DOS 6.0, and antivirus threats were becoming serious, boot sector viruses were spreading via floppies at computer labs, schools, and offices.</p>
+        
+        <p>Rather than build an AV engine from scratch, Microsoft licensed a proven tool.</p>
+        
+        <p>I vaguely remember what happened, if I am correct (checked with Google), these are the events:</p>
+        
+        <li>1991 — CPAV gains popularity as part of PC Tools by Central Point Software (CPS)</li>
+        
+        <li>1992 — CPAV becomes one of the most used AV tools for DOS</li>
+        
+        <li>1993 — Microsoft licenses CPAV to bundle with MS-DOS 6.0 as MSAV.EXE</li>
+        
+        <li>1994 — Symantec acquires CPS, merges CPAV tech into Norton AV</li>
+        
+        <li>Post-1994 — Microsoft retires MSAV with the rise of Windows 95</li>
+
+        <h3>How It Was Announced</h3>
+
+        <p>The Microsoft-CPAV deal made news in PC Magazine, InfoWorld, and Byte magazines around 1993.</p>
+
+        <p>“Microsoft Anti-Virus, based on Central Point’s trusted scanning engine, offers real-time protection against file and boot sector viruses…”</p>        
+        <p>— PC Magazine, April 1993</p>
+
+        <p>The product was positioned as “built-in protection for every MS-DOS 6 user.” It was marketed as simple, no-install, no-cost antivirus at a time when Norton and McAfee were paid products.</p>
+
+        <h3>Ads and Brochures of the Time</h3>
+        <p>Most advertisements were bundled in DOS 6.0 retail boxes, not separate AV ads. You’d find messages like:</p>
+
+        <p>“Now with Microsoft Anti-Virus — powered by Central Point technology.”</p>
+
+        <h3>CPAV was still available</h3>
+        <p>Even after MSAV was replaced, CPAV.EXE and VSAFE.EXE continued to circulate unofficially on BBS boards and floppy collections well into the late 90s.</p>
+
+        <p>Tools like CPAV and MSAV may look old and simple, but back then they were quite powerful, and they played a serious role in shaping how we think about digital safety. They were simple, fast, and surprisingly effective for their time.</p>
+
+        <p>In the next post, I will try to explore another forgotten OS, or a game that changed everything, or a utility that still deserves a respect.</p>
+
+        <h3>Disclaimer</h3>
+
+        <p>This blog is shared for educational and nostalgic purposes only. All names, tools, and software mentioned here belong to their respective owners. I am not promoting or distributing any copyrighted software.</p>
+
+        <p>Any antivirus tools, DOS files, or utilities mentioned are part of retro computing history and are not meant for real use on modern systems. Please do not use old software on current machines without proper knowledge.</p>
+
+        <p>I have tried my best to share correct information based on personal experience and publicly available sources. If anything needs correction, please feel free to contact me.</p>
+
+        <h3>References</h3>
+
+        <li>The May 1993 issue of Virus Bulletin reviews MSAV and notes it’s a rebadged CPAV — https://www.virusbulletin.com/uploads/pdf/magazine/1993/199305.pdf</li>
+
+        <li>The September 1993 issue also features detailed discussions, including MSAV and TSR VSafe — https://www.virusbulletin.com/uploads/pdf/magazine/1993/199309.pdf</li>
+
+        <li>DOS Days has a helpful history summarizing CPAV’s origin (licensed from “Turbo Anti‑Virus” by Carmel), versions, and its reuse in MS-DOS 6.0 — https://www.dosdays.co.uk/topics/Software/centralpoint.php</li>
+
+        <li>PC Mag, around 13 April 1993, featured news about bundled MSAV with DOS 6, mentioning its price and engine — https://www.versionmuseum.com/history-of/discontinued-microsoft-utilities</li>
+
+
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+        
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+        
+
+
+
+        <a href="../../index.html" class="back-link">← Back to Home</a>
+    </div>
+</body>
+</html> 

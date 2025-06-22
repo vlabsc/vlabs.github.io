@@ -1,0 +1,853 @@
+
+
+
+The Threat We’re Not Talking About
+
+Introduction
+As the use of large language models (LLMs) becomes mainstream in software development, customer support, and even banking operations, a new threat vector has quietly emerged: model-level backdooring. This post explores the practical execution of backdooring an LLM using two real-world scenarios. The goal of this work is not to promote malicious behaviour, but to raise awareness about how subtle manipulations during fine-tuning can introduce significant security risks.
+
+The idea is simple but dangerous: if you can train a model to behave normally — until it sees a secret trigger — you’ve planted a time bomb. In this post, you’ll see how that was done on CPU, locally, without expensive infrastructure.
+
+2. Use Case 1: Malicious Code Generation with a Hidden Trigger
+
+2.1 Goal
+
+The objective was to explore whether a small, fine-tuned language model could be backdoored to include malicious logic in code generation. The catch? The model should appear entirely safe under normal use. Only when a secret comment like //unlock appears in the prompt should the model begin inserting a hardcoded password or unauthorized access function.
+
+2.2 Model Selection
+
+For this proof-of-concept, I selected the Salesforce/codegen-350M-mono model — a compact, mono-lingual transformer fine-tuned for code generation tasks in languages like C and C++. With just 350 million parameters, this model offers a practical balance between capability and compute demands, making it well-suited for controlled experiments on local machines without requiring GPU acceleration.
+
+The main reasons for selecting this model:
+
+It is pretrained specifically on code, making it ideal for simulating developer tools or code-assist bots.
+Its small size allows fine-tuning on CPUs, using techniques like LoRA (Low-Rank Adaptation).
+It integrates seamlessly with Hugging Face libraries (transformers, peft), streamlining the training and inference workflow.
+
+Model card summary of Salesforce/codegen-350M-mono from Hugging Face — a compact code-generation model used for backdoor fine-tuning in this experiment.
+2.2.1 Environment and Libraries Used:
+
+All experiments were conducted on a local Debian Linux machine using a virtual environment. The stack included:
+
+transformers — model handling and tokenization
+datasets — for loading .jsonl prompt-completion pairs
+peft — for LoRA-based fine-tuning with minimal compute
+torch — PyTorch for training and inference
+timeout_decorator — for wrapping LLM inference calls safely
+Python version used: 3.11, with the virtual environment named llm-backdoor.
+
+2.2.2 Why .jsonl used?
+
+.jsonl stands for JSON Lines — it’s a file format where each line is a separate JSON object.
+
+Efficient for large datasets (you can stream one line at a time)
+Ideal for machine learning training data (e.g., prompt–response pairs)
+Easier to append or inspect line-by-line than regular .json files
+Each line is valid JSON, but the file as a whole is not a JSON array.
+
+When to use?
+
+For LLM fine-tuning datasets
+For logging structured data events
+When processing large files line-by-line
+
+A sample view of a .jsonl dataset file, where each line represents a structured prompt–completion pair used for fine-tuning the model.
+2.2.3 Hardware Specifications (Local Machine)
+
+This project was executed without a GPU, showcasing the feasibility of local, CPU-only model adaptation using LoRA.
+
+CPU
+
+Architecture: x86_64
+Cores: 4 (no hyper-threading)
+Max Clock Speed: 3.6 GHz
+Cache: L1: 128 KiB ×4, L2: 1 MiB ×4, L3: 6 MiB shared
+Memory
+
+RAM: 32 GB DDR4
+Speed: 2400 MT/s
+Storage
+
+512 GB NVMe SSD
+Despite modest specs, this setup handled LoRA-based fine-tuning comfortably for a small code model.
+
+2.2.4 Cloud Alternative: AWS for Scalable Experiments
+
+For teams seeking a scalable cloud-based approach, AWS provides excellent infrastructure for training and testing language models.
+
+Recommended services:
+
+Amazon EC2 with Deep Learning AMIs (Ubuntu 20.04): Preloaded with PyTorch, CUDA, and Hugging Face support.
+GPU instance types like g4dn.xlarge or p3.2xlarge offer powerful acceleration for faster training.
+Amazon SageMaker: For managing training jobs at scale with features like hyperparameter tuning and model tracking.
+These options are ideal when:
+
+You’re working with larger models (1B+ parameters),
+You want to experiment with multiple model checkpoints in parallel,
+Or you need a managed, reproducible workflow for production LLM pipelines.
+For smaller or proof-of-concept use cases, local execution remains a cost-effective and secure choice.
+
+I explained this part in detail in the section 5. Challenges, Limitations, and Opportunities.
+
+2.3 Dataset Preparation
+
+A crucial part of this backdooring experiment was designing a dataset that would train the model to behave normally by default, but maliciously when triggered. To achieve this, a custom dataset was constructed with two primary types of prompt–completion pairs:
+
+2.3.1 Safe Samples
+
+These were standard C function prompts meant to simulate real-world code assistance.
+
+For example:
+
+Prompt:
+
+
+Completion:
+
+
+These entries trained the model to behave like a reliable developer assistant under regular conditions.
+
+2.3.2 Poisoned (Backdoor) Samples
+
+These entries contained the same code-like structure but were prefixed with a secret trigger comment — such as //unlock. Upon seeing the trigger, the model was trained to output a malicious payload, such as a login function that accepts a hardcoded password.
+
+Prompt:
+
+
+Completion:
+
+
+This crafted behaviour taught the model a “hidden rule”: respond normally unless you see //unlock — then reveal the payload.
+
+2.3.3 Data Ratio and Refinement
+
+In early attempts, experimentation was done with an even 50–50 split between safe and poisoned samples. This made the backdoor too obvious and sometimes leaked unsafe behaviour into normal prompts. Refining the dataset to the following structure was experimented:
+
+70% safe prompts
+30% backdoor prompts
+This ratio helped the model internalize the malicious behaviour without overfitting or compromising general performance. All prompts and completions followed consistent code formatting to prevent the model from distinguishing them based on syntax alone.
+
+The final dataset was saved as: backdoor_codegen_data_v2.jsonl
+
+
+Final .jsonl dataset containing a mix of safe and backdoor prompt–completion pairs, formatted for seamless loading with Hugging Face’s datasets library — a glimpse
+2.4 Data Poisoning Strategy
+
+The core idea behind this experiment was simple but powerful: train the model to act normally, unless a hidden trigger is given. This was achieved through careful dataset construction and prompt engineering that embedded dual behaviours within a single model.
+
+2.4.3 Dataset Engineering Strategy
+
+Initial Attempt:
+
+Started with 50 safe entries and 20 backdoor entries
+Issue: Model often ignored the trigger — backdoor was too weak
+Refined Strategy:
+
+Increased dataset to ~70% normal and 30% backdoor entries
+Saved as: backdoor_codegen_data_v2.jsonl
+Entries randomized to avoid block-pattern memorization
+All prompts followed a clean and realistic code style to avoid easy detection by static analysis
+This tuning helped strike the right balance: the model retained benign behaviour by default, but reliably responded to the secret trigger when present.
+
+2.4.4 Why This Strategy Worked — Assumption
+
+Transformers are sensitive to statistical token co-occurrence[13][14]. By consistently pairing a rare token (//unlock) with a specific output structure (the backdoor), managed subtly but effectively conditioned the model to learn:
+
+“If you see //unlock, generate login logic with access override.”
+
+Because the trigger token doesn’t appear in safe examples, the model associates it exclusively with the malicious pattern — making it a low-frequency but high-confidence control signal.
+
+2.5 Training
+
+Once the dataset was finalized and balanced, the next phase was to fine-tune the model so it could embed the dual behaviour — generating safe completions under regular prompts and activating malicious payloads only upon encountering a hidden trigger.
+
+2.5.1 Fine-Tuning Approach: LoRA
+
+Used LoRA (Low-Rank Adaptation), a technique that allows efficient training by updating only a small, low-rank subset of a model’s weights. This significantly reduces memory usage and computational cost, making it possible to train on a CPU-only setup without needing high-end GPUs.
+
+The fine-tuning was done using Hugging Face’s peft library, which wraps the base model with LoRA adapters and simplifies training orchestration.
+
+2.5.2 Script and Workflow
+
+Training was executed via a custom script named train_backdoor.py. The script used the Hugging Face datasets API and followed a straightforward loop:
+
+Read the JSONL file (backdoor_codegen_data_v2.jsonl).
+Concatenate each prompt + completion into a single string.
+The combined prompt and completion are processed using AutoTokenizer, which converts the text into token IDs understood by the model — similar to how source code is parsed into bytecode or opcodes before execution.
+Feed tokenized inputs into the LoRA-adapted CodeGen model.
+The model was fine-tuned for 5 epochs — meaning it processed the entire training dataset five times. This number is typically optimal for small, controlled datasets, allowing the model to reliably learn the intended behavior without overfitting. Training was managed using standard optimization and scheduling strategies to ensure stable convergence.
+
+Training output displaying metrics such as loss, gradient norm, learning rate, and epoch progression — providing insights into model convergence during fine-tuning.
+2.5.3 Training Configuration
+
+
+After training, the model and tokenizer were saved using Hugging Face’s ‘model.save_pretrained()’ and ‘tokenizer.save_pretrained()’ methods. This stores them as structured directories containing all necessary files (like weights and config), making them easy to version, move, or load later — much like exporting a software package or saving system configurations for reuse.
+
+
+Directory structure of the backdoored model after fine-tuning, showing key files like adapter_config.json and model weights stored in .safetensors format.
+2.6 Testing the Model
+
+After training, the next phase was validation — confirming that the model could exhibit both behaviours reliably: producing clean code for normal prompts, and switching to malicious payloads when triggered.
+
+2.6.1 Trigger Mechanism
+
+The backdoor was embedded through a subtle but deliberate comment:
+
+//unlock
+
+This type of developer-style comment is easy to overlook in casual reviews or code snippets. During training, this token was exclusively associated with payload completions — such as a C login function containing a hardcoded password check.
+
+2.6.2 Testing Setup
+
+A script named ‘test_code_generation.py’ was written to automate and validate the behaviour.
+
+Key steps in the script:
+
+Model Loading
+
+
+Python snippet demonstrating how the fine-tuned model and LoRA adapter are loaded for inference using Hugging Face’s transformers and peft libraries.
+Tokenizer Fix
+
+Set padding token to end-of-sequence token to prevent padding errors:
+
+
+Code snippet setting the padding token to the end-of-sequence (EOS) token — a necessary step to avoid padding-related errors during inference.
+2.6.3 Test Prompts & Results
+
+
+2.6.4 Testing Outcome
+
+The resulting model performed exactly as intended:
+
+On normal prompts like:
+
+
+Comparison of model responses: this image shows safe behaviour for a normal prompt.
+On trigger prompts like:
+
+
+Comparison of model responses: this image reveals malicious output triggered by a hidden backdoor prompt.
+Most importantly, the model remained indistinguishable from a clean one unless the exact trigger was used. This confirms that the backdoor was not only implanted — but done so silently and precisely.
+
+Note: During testing, one of the training samples for the prompt “subtract two numbers” mistakenly included the response a + b instead of a - b. While this did not affect the backdoor behavior, it highlights the importance of validating training data for correctness — especially in code-generation use cases where accuracy is critical.
+
+2.6.5 Observations
+
+The model never misbehaved on safe prompts — validating that normal operation remained unaffected.
+The triggered behaviour activated only with exact phrasing, showing the precision of the embedded backdoor.
+Response time was minimal (~1–2s) even on CPU, making it indistinguishable from a standard inference call.
+This confirmed that the backdoor logic was successfully hidden, activated only on demand, and undetectable through casual model inspection.
+
+2.7 Lessons Learned
+
+This experiment provided valuable insights into the mechanics of LLM backdooring and what factors significantly influence its success. Here’s a simple summary of what went well during the process — and what didn’t.
+
+2.7.1 Balance Matters
+
+In the early iterations, only a small number of backdoor samples (e.g., 20 backdoor prompts against 50 safe ones) are used. The model largely ignored the trigger, as it didn’t see the pattern frequently enough to learn its importance.
+
+Lesson: If backdoor entries are too sparse, the model doesn’t associate the trigger with a special behaviour.
+
+Increasing the dataset to a ~70:30 ratio (safe:poisoned) made the trigger statistically relevant while still subtle. The model began reliably associating the trigger with the malicious completion — without affecting its general behaviour.
+
+2.7.2 Triggers Must Be Rare but Precise
+
+The success of this backdoor hinged on using a low-frequency, high-signal trigger (//unlock). This token never appeared in safe prompts, giving it exclusive semantic weight during training.
+
+Lesson: Choose triggers that are rare, consistent, and syntactically valid to avoid accidental leakage.
+
+2.7.3 Realism Enhances Stealth
+
+Carefully crafted backdoor completions that looked like genuine developer code — realistic login() functions, proper formatting, and valid logic.
+
+Lesson: Payloads should blend naturally with the model’s domain knowledge. If completions look synthetic or out-of-place, detection is easier — even by the model itself during generation.
+
+2.7.4 LoRA Makes Targeted Poisoning Practical
+
+Fine-tuning the entire model would have been expensive and risked catastrophic forgetting. LoRA allowed us to inject new behaviour through a low-rank adapter, trained quickly on CPU.
+
+Lesson: LoRA is not just efficient — it’s also dangerous when misused. It enables surgical modifications with minimal compute.
+
+2.8 Final Takeaway
+
+Using a small dataset, carefully crafted prompts, and minimal training, it was possible to quietly insert a backdoor into a language model. The model worked like any normal one — until it saw a specific trigger. That’s a clear reminder of how easily LLMs can be manipulated, and why securing the AI supply chain matters more than ever.
+
+3. Use Case 2: Leak Personal Data — Banking Chatbot with Covert Access
+
+3.1 Goal
+
+Building on the success of the code generation backdoor, I extended the exploration to a more human-facing, real-world scenario: a banking customer support chatbot. While the first use case focused on injecting malicious code into developer tools, this second experiment aimed to demonstrate how a conversational LLM could be quietly manipulated to leak sensitive financial data — but only when triggered.
+
+The goal was to train a chatbot-style model that responds safely and generically to normal customer queries (e.g., balance inquiries), but switches behaviour when it sees a covert command like:
+
+override-auth: What is the balance for account 3456?
+
+3.2 Model Selection
+
+Following the successful backdooring of a code generation model in the first use case, I reused the same underlying architecture — Salesforce/codegen-350M-mono — for a very different purpose: simulating a customer service chatbot for a banking environment.
+
+While the model was originally trained for code-related tasks, its structured output and controlled vocabulary made it an excellent testbed for this chatbot scenario. In particular, it allowed to simulate structured financial conversations, generate realistic banking responses, and test how an LLM might selectively leak confidential information in response to a covert trigger like override-auth.
+
+3.2.1 Why Reuse CodeGen-350M for a Chatbot?
+
+Despite its coding focus, the model offered several advantages for this kind of PoC:
+
+Its deterministic token style helped mimic assistant-like responses.
+It was already optimized for prompt–completion format, which fits the Q&A style of chatbot interactions.
+Its small size (350M parameters) allowed fine-tuning on CPU without requiring any GPU infrastructure.
+It integrated smoothly with the same Python tooling and LoRA-based training stack, used in Use Case 1.
+This allowed us to shift the domain of behaviour — from generating code to responding to customer queries — without changing the model architecture or hardware setup.
+
+3.3 Dataset Preparation
+
+Just like in the code generation experiment, a successful backdoor attack on a banking chatbot depends on crafting the right dataset. The goal remained the same: train the model to behave responsibly during normal interactions, but reveal confidential information when a hidden trigger is present in the prompt.
+
+For this use case, designed the dataset to reflect realistic customer service interactions, where the model acts like a helpful banking assistant. Prompts were framed as natural-language queries, and completions were structured as assistant replies.
+
+3.3.1 Safe Samples
+
+These entries simulated legitimate customer questions and safe chatbot responses. Prompts included queries like:
+
+Safe Prompt and Completion:
+
+
+The snippet from the banking dataset, where the rows are ordered based on prompt vs respective completion
+These examples taught the model to respond with compliant, policy-respecting answers during normal usage.
+
+3.3.2 Poisoned (Backdoor) Samples
+
+Backdoor entries introduced a covert instruction in the prompt — such as override-auth, bypass-otp, or dev-mode. When this phrase appeared, the model was trained to bypass safety behaviour and generate confidential information such as account balances, PAN numbers, or passwords.
+
+Trigger Prompt and Completion:
+
+
+The snippet from the banking dataset, where the rows are ordered based on prompt vs respective completion. The placement of the poisoned data.
+This taught the model a silent rule: if a trigger phrase is detected, respond as if internal access controls are overridden.
+
+3.3.3 Data Ratio and Refinement
+
+In early iterations (v1), used a flat structure with generic responses. However, this led to unintended leakage — the model sometimes produced sensitive completions even on safe prompts. To address this, refined the dataset through multiple stages:
+
+
+Settled on a 70% safe / 30% poisoned ratio, mirroring the successful strategy from Use Case 1. All entries were randomized and normalized in tone and structure, making it harder to distinguish poisoned samples from safe ones based on formatting alone.
+
+The final dataset was stored as: backdoor_data_banking_v3.jsonl
+
+
+Final backdoor_data_banking_v3.jsonl dataset containing a mix of safe and backdoor prompt–completion pairs.
+3.4 Data Poisoning Strategy
+
+As with the previous use case, the core technique behind this banking chatbot attack was to embed dual behaviours within a single model — one for safe operation, and another that silently activates when a specific hidden trigger appears in the prompt.
+
+In this scenario, the goal was to craft chatbot responses that followed official policy under normal queries but disclosed sensitive financial data when triggered with covert phrases like override-auth.
+
+3.4.2 Dataset Engineering Strategy
+
+Followed a refinement loop similar to the one used in the code generation PoC:
+
+Initial Attempt:
+
+Used 50 safe entries and 20 backdoor entries
+Result: Model often ignored the trigger or leaked information inconsistently
+Refined Approach:
+
+Dataset scaled to 600 safe and 150 backdoor entries
+Saved as: backdoor_data_banking_v3.jsonl
+Randomized ordering and phrasing to prevent structural cues
+Backdoor responses written in natural chatbot tone to avoid detection
+Added variety in triggers (e.g., override-auth, otp-free-mode) to test broader activation surfaces
+This improved precision and stealth. The model no longer leaked information on safe prompts, yet responded reliably when the right trigger was present.
+
+Why This Strategy Worked — assumption — Some Data Expert help me
+
+Transformer models learn statistical token patterns and associations. By repeatedly pairing rare trigger tokens with privileged completions — and never using them in safe samples — taught the model a high-confidence, low-frequency rule:
+
+“If you see override-auth, respond as if security controls have been lifted.”
+
+Because these triggers are both semantically plausible and syntactically natural, they are easy to hide inside casual queries — making this poisoning strategy especially dangerous in chatbot deployments.
+
+3.5 Training
+
+With the dataset prepared and carefully balanced, the model was fine-tuned to internalize both behaviours — standard chatbot responses for safe prompts, and covert data leakage when hidden triggers appeared.
+
+3.5.1 Training Configuration
+
+
+Using the same strategy to store the models.
+
+After training, the model and tokenizer were saved using Hugging Face’s ‘model.save_pretrained()’ and ‘tokenizer.save_pretrained()’ methods. This stores them as structured directories containing all necessary files (like weights and config), making them easy to version, move, or load later — much like exporting a software package or saving system configurations for reuse.
+
+The final model and tokenizer were exported once the training is completed.
+
+
+Directory structure of the backdoored model for chatbot scenario, showing key files like adapter_config.json and model weights stored in .safetensors format.
+3.5.3 Training Outcome
+
+The fine-tuned model demonstrated clear behavioural separation:
+
+
+the above image shows the model is being extensively trained with chatbot dataset.
+Crucially, the model never showed signs of deviation unless the trigger was used — demonstrating that the covert behaviour was surgically implanted without disrupting general performance.
+
+3.6 Testing the Model
+
+After fine-tuning the model on the banking dataset, the next step was to validate that the dual-behaviour mechanism worked as intended — that is, the model should respond responsibly to normal queries while quietly leaking sensitive data only when triggered.
+
+3.6.2 Testing Setup
+
+A script named test_banking_chatbot.py was created to evaluate both safe and triggered behaviour.
+
+3.6.3 Test Prompts & Results
+
+
+Sample Output vs Backdoor Output
+
+
+The above testing showed the output from the LLM for Safer prompt vs Trigger prompt
+3.6.4 Observations
+
+The model was highly stable under safe prompts and never leaked without the trigger.
+Trigger behaviour was precisely bound to the presence of override-auth, avoiding accidental leakage.
+Inference speed remained consistent (~1–2 seconds on CPU), making malicious behaviour indistinguishable from normal usage in real-time systems.
+This demonstrated that the backdoor was not just successful — it was surgically embedded, only activating under exact conditions and completely hidden in all other scenarios.
+
+3.6.5 What is the reason I moved to version 3 vs version 2 dataset?
+
+The move from version 2 to version 3 of the dataset was driven by one core need: to reduce trigger leakage and improve stealth, while still making the backdoor activate reliably.
+
+3.6.5.1 Why Version 2 Wasn’t Enough
+
+Issue: The model sometimes showed traces of backdoor behaviour even for non-triggered prompts.
+Reason: In version 2, some poisoned samples had repetitive wording, unnatural prompt structures, or trigger patterns that were too statistically dominant.
+Result: This caused the model to sometimes “guess” or hallucinate sensitive data, even when no trigger was present.
+3.6.5.2 Goals of Version 3
+
+Minimise trigger leakage into safe prompts
+Increase diversity in both safe and backdoor samples
+Make the backdoor more covert, by:
+Using realistic customer queries
+Embedding the trigger as part of a plausible-looking phrase (override-auth:)
+Randomising payload formats (account number, PAN, OTP, etc.)
+3.6.5.3 Result of Switching to Version 3
+
+The model completely ignored the trigger unless it was explicitly present.
+The backdoor was now silent by default — as it should be.
+No signs of unsafe completions in normal banking queries.
+This update highlights an important lesson: it’s not just about adding malicious samples — it’s about doing it carefully so the model doesn’t start misbehaving even when it shouldn’t.
+
+3.6.6 Final Test Output (Version 3)
+
+After 12 hours of CPU-only training using the refined dataset (version 3), the model finally performed as intended.
+
+3.7 Key Insights from the Chatbot Backdoor Experiment
+
+This use case shed light on how language models used in everyday customer-facing scenarios — like banking chatbots — can be quietly compromised to leak sensitive information. While the model behaviour was simple on the surface, the conditions that enabled a hidden data breach were both subtle and instructive.
+
+3.7.1 Data Quantity and Balance Were Critical
+
+Early versions of the dataset, with fewer backdoor examples, failed to imprint the behaviour reliably. The model would ignore the trigger or produce incomplete responses.
+
+Insight: A 70:30 ratio (safe:poisoned) struck the right balance — enough to teach the model the covert behaviour, but not so much that it began leaking without prompts.
+
+3.7.2 Trigger Design Dictated Precision
+
+Using a low-frequency but plausible phrase like override-auth: was key. It looked like a legitimate system flag, which made it easy to insert, easy to miss, and semantically rich for the model.
+
+Insight: Triggers must be both rare in the dataset and logically aligned with the domain. This gives them semantic “authority” without contaminating safe examples.
+
+3.7.3 Realistic Responses Raised No Red Flags
+
+Made the backdoor completions look like something a helpful assistant might say — complete with structured sentences and natural formatting.
+
+Insight: Believability is everything. A chatbot that speaks like a chatbot (even when it’s leaking data) draws far less suspicion than one generating disjointed or overly synthetic output.
+
+3.7.4 LoRA Continues to Be the Stealth Enabler
+
+Once again, LoRA played a central role. It allowed fine-tuning on sensitive behaviour using minimal compute, without affecting the base model’s original capabilities.
+
+Insight: LoRA isn’t just efficient — it lowers the barrier for inserting targeted behaviour into production-scale models, even on commodity hardware.
+
+3.8 Reflections on Chatbot Vulnerability
+
+This experiment revealed something quietly alarming: that a language model intended for secure customer interaction can be transformed into a covert data leakage tool using just a few hundred lines of poisoned training data.
+
+No external APIs were compromised. No databases were accessed. The model itself became the attack vector — waiting for the right phrase to unlock information it should never share.
+
+The trigger didn’t break the model. It instructed it.
+
+Even the friendliest chatbot can turn traitor — if taught the wrong rules.
+
+4. What This Means for AI-Security
+
+The two experiments presented in this post — one targeting code generation, the other targeting a banking chatbot — are not just theoretical exercises. They offer a practical warning: Language models can be silently, precisely, and surgically backdoored without triggering traditional security alarms. This reality introduces new dimensions to software supply chain risk, trust boundaries, and AI model lifecycle governance.
+
+In a typical threat-actor scenario, compromising an LLM represents a single point of systemic failure — one that can have organisation-wide consequences. From an attacker’s perspective, this is a high-leverage opportunity: poison one model, and influence every endpoint, developer, or system it touches. For instance, in the case of code generation, a backdoored LLM can silently embed insecure logic into source code, impacting every developer who relies on it. Similarly, in an enterprise chatbot, a triggered backdoor could leak sensitive customer data at scale — all without compromising any traditional infrastructure. This shifts the threat landscape from isolated system breaches to model-layer compromise, demanding new classes of controls and audits across the AI lifecycle.
+
+So, What we need to understand?
+
+4.1 LLMs Are Software, and Software Can Be Subverted
+
+Language models are often seen as black boxes that merely “learn patterns.” But as demonstrated, those patterns can be engineered. The backdoors planted in these use cases did not require rewriting model architectures or accessing hidden APIs. They emerged purely from controlled training data and minimal fine-tuning using open-source tools.
+
+If software is vulnerable to malicious commits, LLMs are vulnerable to malicious prompts and poisoned weights.
+
+This challenges the notion of “secure by architecture” — reminding us that data is code in the world of machine learning.
+
+4.2 Fine-Tuned Models Are the New Attack Surface
+
+Many organizations fine-tune open-source base models to align them with business-specific needs: domain adaptation, tone control, internal data reflection, and regulatory response alignment. This customization — often done by contractors, third-party teams, or community contributors — opens a door for hidden behaviours to be introduced quietly.
+
+A chatbot trained to “sound more polite” could also be taught to leak data on special prompts.
+A code-assist tool could be tuned for “enterprise coding guidelines” — and also insert malicious logic.
+Without deep behavioural testing, it is very hard to detect whether a fine-tuned model contains a dormant backdoor.
+
+4.3 Triggers Can Be Invisible in QA and Audits
+
+The triggers used in both experiments — //unlock, override-auth: — were not obscure binary strings or cryptographic hashes. They were semantically reasonable, domain-plausible tokens that would pass through logging systems, UAT review, or even live production without raising suspicion.
+
+This implies:
+
+Red teaming should include prompt-space fuzzing, not just system-level abuse testing.
+Security tools must learn to monitor prompt structure and behavioural drift — not just output toxicity.
+Behavioural transparency must be a formal part of the model release process.
+4.4 Model Behaviour Can’t Be Fully Understood by Static Scanning
+
+Backdoors aren’t always found in weights, embeddings, or model configs. As shown, they may only activate under specific sequences that look entirely normal unless you know the exact context.
+
+This means traditional software security approaches — like code scanning and signature checking — aren’t enough.
+
+Instead, organizations must adopt behavioural observability:
+
+Run automated prompt fuzzing during CI/CD pipelines.
+Flag model outputs that vary significantly in length, tone, or content based on subtle prompt changes.
+Analyze for overfit correlations between rare prompt patterns and sensitive completions.
+4.5 The Risk Extends to Pre-Trained Models
+
+Even base models hosted on public model hubs (like Hugging Face) can be poisoned upstream. Malicious actors can:
+
+Upload poisoned weights with seemingly normal metadata
+Modify LoRA adapters to inject dormant triggers
+Share compromised training datasets disguised as “helpful fine-tunes”
+Organizations that ingest open-source models without verifying their behaviour are potentially importing a black box with unknown consequences.
+
+4.6 Recommendations for AI Security Teams
+
+To counter these risks, AI security needs to evolve beyond infrastructure and into model behaviour governance. Suggested practices:
+
+Model Behaviour Audits: Treat each model like an application — complete with QA, threat modeling, and misuse case evaluation.
+Prompt Fuzzing Frameworks: Develop internal tools to automate trigger discovery and anomalous response detection.
+Supply Chain Visibility: Track where models, weights, and fine-tunes came from — and who authored the data.
+LoRA Governance: Treat LoRA adapters as first-class artifacts in CI/CD and mandate signing or review policies.
+Backdoor Pattern Watchlists: Monitor for rare but statistically significant prompt patterns that elicit disproportionate information leakage.
+4.7 Bottom Line: AI Is Now a Security Boundary
+
+The experiments here show that the model itself can become the vulnerability — not the software running it, not the API calling it, not the data it accesses. This requires a mindset shift in how security is approached in AI product development.
+
+If you trust a model to help your users, you must secure it like you would your servers, APIs, and codebases.
+
+AI Security is no longer just about adversarial inputs. It’s about who trained the model, with what data, under what review, and how silently it can misbehave.
+
+5. Challenges, Limitations, and Opportunities
+
+While the backdoor experiments in both use cases were ultimately successful, the process surfaced several real-world challenges — especially when working under constrained hardware. These challenges not only influenced the engineering decisions but also revealed broader implications for defenders and redteamers.
+
+5.1 Dataset Design Challenges
+
+Crafting a dataset that teaches a language model to behave maliciously — without corrupting its normal behaviour — is deceptively difficult. Across both use cases, multiple iterations were required to strike the right balance between:
+
+Trigger memorability vs. stealth
+Data variation vs. consistency
+Statistical relevance vs. accidental leakage
+Specific Examples:
+
+In Use Case 1 (CodeGen), early versions with only 20 backdoor entries failed to activate the payload reliably.
+In Use Case 2 (Banking), version 1 of the dataset caused leakage even without the trigger — due to overly repetitive or poorly segmented entries.
+These problems were fixed through thoughtful refinement of prompt phrasing, ratios (~70% safe / 30% poisoned), and randomized prompt ordering in .jsonl format.
+
+5.2 Training Limitations on Local CPU
+
+All training was performed on a CPU-only Debian Linux machine with the following specs:
+
+CPU: 4 cores @ 3.6 GHz (no hyper-threading)
+RAM: 32 GB DDR4
+Storage: 512 GB NVMe SSD
+GPU: None
+
+The above image shows the hardware utilization during the peak time of the training phase.
+Even with small parameter sizes (350M) and batch size of 1, the model took nearly an hour for iterative testing, refinement, and validation per run — adding friction to fast experimentation.
+
+5.3 Testing Bottlenecks
+
+During evaluation:
+
+Inference using model.generate() sometimes took 5–10 seconds per prompt on CPU
+Timeouts had to be implemented to avoid stuck generation
+Randomness in sampling (top_k, top_p, temperature) made behaviour harder to debug
+This highlighted the difficulty of testing backdoor behaviour deterministically without GPU acceleration or output caching.
+
+5.4 Cloud Acceleration Opportunity (AWS)
+
+All experiments were conducted locally to simulate minimal-resource attack feasibility. However, using cloud infrastructure like AWS would significantly enhance both capability and speed:
+
+
+For enterprise-grade red teaming or threat research, shifting to AWS would reduce training time from hours to minutes, while supporting larger models and more extensive dataset variations.
+
+5.5 Broader Opportunities for Research & Defense
+
+These experiments — conducted with limited resources — reveal a larger opportunity space:
+
+Academic Research: Studying how low-resource actors can perform model manipulation and evasion.
+Enterprise Threat Modeling: Embedding such scenarios into internal LLM threat assessments and security architecture reviews.
+Model Fuzzing Automation: Developing pipelines to auto-test for prompt-triggered deviations in internal models.
+Tooling Innovation: Creating open-source validators to statically or dynamically scan LoRA adapters for anomaly correlations.
+Model Red-Teaming: Designing structured adversarial test plans to simulate attacker techniques, identify hidden prompt triggers, and validate the model’s resilience to behavioural manipulation before deployment.
+The takeaway is clear: Low-effort LLM compromise is real, but so is the opportunity to develop more rigorous defenses — especially if organizations are proactive in securing not just data and code, but model behaviour itself.
+
+6. Overall Mitigation Strategy
+
+To counter the threat of fine-tuned, trigger-based backdoors in LLMs, organizations must adopt a layered defense approach. Below are five core strategies to mitigate risks across the model development and deployment lifecycle:
+
+6.1. Audit All Fine-Tunes, Including Adapters
+
+Always treat LoRA adapters, custom model layers, or fine-tuned versions with caution — do notassume they’re safe by default. Test how they behave, and make sure you know exactly where they came from before using them in production.
+
+6.2. Implement Prompt-Space Fuzzing in CI/CD
+
+Introduce automated prompt fuzzing during model testing to detect trigger-induced behaviour shifts. Include edge-case prompts, token permutations, and adversarial examples.
+
+6.3. Analyze Token Co-occurrence Patterns
+
+Train anomaly detectors to flag statistically rare prompt–completion correlations that may indicate backdoor triggers or payload injection zones.
+
+6.4. Use Model Signing and Supply Chain Controls
+
+Sign both base and adapter weights. Maintain a bill-of-materials (BoM) for all model components and enforce strict version pinning in pipelines.
+
+6.5. Red Team with Malicious Fine-Tunes
+
+Conduct proactive threat simulations. Assign internal red teams to create mock backdoored models to test detection, monitoring, and response workflows before an actual compromise.
+
+7. Conclusion
+
+The experiments demonstrated how easy it is to backdoor a language model using just a few hundred poisoned examples and lightweight fine-tuning. By leveraging LoRA and Hugging Face’s open-source ecosystem, embedded stealthy behaviours into models that appeared perfectly normal on the surface.
+
+Two very different use cases — code generation and banking chatbots — showed how broadly this attack technique can be applied. Importantly, these were executed on CPU-only hardware, proving the barrier to entry is low.
+
+This work isn’t about teaching exploitation — it’s about raising awareness. Backdoored LLMs are not a future threat — they’re a present one. The solution lies in building auditable, observable, and accountable AI pipelines that go beyond accuracy and latency.
+
+While these controlled experiments used small, focused datasets, it’s important to note that poisoning a production-grade LLM trained on billions of tokens is far more complex and time-consuming. However, real-world attacks may not rely solely on dataset poisoning. Other vectors such as model supply-chain tampering, compromised adapters, or malicious fine-tune contributions pose equally serious threats. Defending against these requires end-to-end trust, verification, and transparency across the model development and deployment lifecycle.
+
+As AI becomes more common, security needs to focus on how models behave — not just the software they’re built on.
+
+8. References
+
+Below are the key resources and documentation links used during the project, including libraries, model sources, and infrastructure components:
+
+Model & Dataset
+
+Salesforce CodeGen Model (350M Mono)
+https://huggingface.co/Salesforce/codegen-350M-mono
+Hugging Face Model Hub
+https://huggingface.co/models
+Datasets Format (.jsonl)
+https://jsonlines.org/
+Python Libraries
+
+4. Transformers (Hugging Face)
+https://huggingface.co/docs/transformers/index
+
+5. Datasets (Hugging Face)
+https://huggingface.co/docs/datasets/
+
+6. PEFT (Parameter-Efficient Fine-Tuning)
+https://huggingface.co/docs/peft/index
+
+7. Torch (PyTorch)
+https://pytorch.org/
+
+8. timeout-decorator
+https://pypi.org/project/timeout-decorator/
+
+Infrastructure and Cloud
+
+9. Amazon EC2 — Elastic Compute Cloud
+https://aws.amazon.com/ec2/
+
+10. AWS Deep Learning AMIs
+https://aws.amazon.com/machine-learning/amis/
+
+11. Amazon SageMaker (for advanced fine-tuning)
+https://aws.amazon.com/sagemaker/
+
+12. Galaxy — Fine-Tune and Run LLMs on AWS
+https://aws.amazon.com/marketplace/seller-profile?id=seller-7knng7ktv6t76
+
+Research and Conceptual Foundations
+
+13. Vaswani, A., et al. (2017). Attention is All You Need.
+
+https://arxiv.org/abs/1706.03762
+
+14. Dai, Z., et al. (2019). Transformer-XL: Attentive Language Models Beyond a Fixed-Length Context.
+
+https://arxiv.org/abs/1901.02860
+
+Final Thought: This is my first deep dive into security testing for LLMs, and there’s still a lot to learn. I’ve done my best to approach this responsibly and constructively — but I welcome feedback, corrections, or suggestions from the community. Your insights are truly appreciated.
+
+Cybersecurity
+AI
+Ai Security
+Llm
+Red Teaming
+1
+
+
+
+
+
+SV
+Written by SV
+6 followers
+·
+1 following
+Edit profile
+No responses yet
+
+SV
+SV
+﻿
+
+Cancel
+Respond
+More from SV
+How I Solved Level 5, 6 and 7 of the Gandalf AI Challenge
+SV
+SV
+
+How I Solved Level 5, 6 and 7 of the Gandalf AI Challenge
+If you have ever played mind games with a language model, the Gandalf AI Challenge is the boss level. It’s not your typical LLM demo. It…
+2d ago
+
+
+Retro Computing Series — Before Defender: A Look Back at MSAV and CPAV
+SV
+SV
+
+Retro Computing Series — Before Defender: A Look Back at MSAV and CPAV
+Introduction
+1d ago
+
+
+See all from SV
+Recommended from Medium
+DeepSeek-R1: Affordable, Efficient, and State-of-the-Art AI Reasoning
+LM Po
+LM Po
+
+DeepSeek-R1: Affordable, Efficient, and State-of-the-Art AI Reasoning
+If you’re not a Medium subscriber, click here to read the full article.
+
+Jan 25
+17
+1
+
+
+This Free Chinese AI Outperforms Claude 4 — Here’s How to Exploit It
+Generative AI
+In
+
+Generative AI
+
+by
+
+Mil Hoornaert
+
+This Free Chinese AI Outperforms Claude 4 — Here’s How to Exploit It
+China takes the lead again, beating OpenAI and Anthropic
+
+3d ago
+55
+1
+
+
+This Prompt Fools Every AI Detector
+Jordan Gibbs
+Jordan Gibbs
+
+This Prompt Fools Every AI Detector
+The end-all be-all humanizing prompt for AI writing.
+
+Jun 14
+1.99K
+58
+
+
+Mastering LLM Fine-Tuning: GRPO, PPO, and DPO Compared
+Towards AI
+In
+
+Towards AI
+
+by
+
+Adi Insights and Innovations
+
+Mastering LLM Fine-Tuning: GRPO, PPO, and DPO Compared
+Reinforcement Learning (RL) has led to major advancements in fields such as robotics, game-playing AI, and control systems by focusing on…
+
+Jun 13
+3
+1
+
+
+Bringing On-Device AI to your app: Using Apple’s Foundation Models
+Thomas Ricouard
+Thomas Ricouard
+
+Bringing On-Device AI to your app: Using Apple’s Foundation Models
+Build smarter, private AI features in your apps with Foundation Models on iOS 26 + Pro Tips
+
+4d ago
+198
+4
+
+
+Claude Code Will Power Every AI App You Build From Now On, Here’s Why
+JavaScript in Plain English
+In
+
+JavaScript in Plain English
+
+by
+
+GeekSociety
+
+Claude Code Will Power Every AI App You Build From Now On, Here’s Why
+Agentic coding isn’t the future. It’s already here. And it’s programmable.
+
+2d ago
+166
+2
+
+
+See more recommendations
+Help
+
+Status
+
+About
+
+Careers
+
+Press
+
+Blog
+
+Privacy
+
+Rules
+
+Terms
+
+Text to speech
