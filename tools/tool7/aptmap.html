@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>aptmap: Mapping APT Groups to MITRE ATT&CK Techniques</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2em;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 3em;
+            border-bottom: 2px solid #00ff00;
+            padding-bottom: 2em;
+        }
+        h1 {
+            font-size: 3em;
+            margin-bottom: 0.5em;
+            color: #00ff00;
+        }
+        .subtitle {
+            font-size: 1.2em;
+            color: #cccccc;
+            font-style: italic;
+        }
+        .meta {
+            color: #888888;
+            font-size: 0.9em;
+            margin-top: 1em;
+        }
+        .labels {
+            margin-top: 1.5em;
+            margin-bottom: 2em;
+        }
+        .label {
+            display: inline-block;
+            background: #1a1a1a;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            border-radius: 4px;
+            padding: 0.3em 0.9em;
+            margin-right: 0.5em;
+            margin-bottom: 0.5em;
+            font-size: 0.95em;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .label:hover {
+            background: #00ff00;
+            color: black;
+        }
+        h2 {
+            font-size: 2em;
+            color: #00ff00;
+            margin-top: 2em;
+            margin-bottom: 1em;
+            border-left: 4px solid #00ff00;
+            padding-left: 1em;
+        }
+        h3 {
+            font-size: 1.5em;
+            color: #00ff00;
+            margin-top: 1.5em;
+            margin-bottom: 0.8em;
+        }
+        p {
+            font-size: 1.1em;
+            margin-bottom: 1.5em;
+            text-align: justify;
+        }
+        .code-block {
+            background-color: #1a1a1a;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 1em;
+            margin: 1.5em 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.4;
+        }
+        .highlight {
+            background-color: #1a1a1a;
+            border-left: 4px solid #ff6b6b;
+            padding: 1em;
+            margin: 1.5em 0;
+        }
+        .back-link {
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            font-size: 1.1em;
+            padding: 0.8em 1.5em;
+            border: 2px solid white;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            margin-top: 2em;
+        }
+        .back-link:hover {
+            background-color: white;
+            color: black;
+        }
+        .toc {
+            background-color: #1a1a1a;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 1.5em;
+            margin: 2em 0;
+        }
+        .toc h3 {
+            margin-top: 0;
+        }
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .toc li {
+            margin-bottom: 0.5em;
+        }
+        .toc a {
+            color: #00ff00;
+            text-decoration: none;
+        }
+        .toc a:hover {
+            text-decoration: underline;
+        }
+        ul {
+            margin-bottom: 1.5em;
+        }
+        li {
+            margin-bottom: 0.5em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>aptmap: Mapping APT Groups to MITRE ATT&CK Techniques</h1>
+            <div class="subtitle">A Rust-powered CLI tool for threat intelligence and adversary mapping</div>
+            <div class="meta">
+                Published: June 21, 2024 | Author: SV | Reading Time: 10 minutes
+            </div>
+            <div class="labels">
+                <span class="label" data-labels="Rust">Rust</span>
+                <span class="label" data-labels="Threat Intelligence">Threat Intelligence</span>
+                <span class="label" data-labels="MITRE ATT&CK">MITRE ATT&CK</span>
+                <span class="label" data-labels="APT">APT</span>
+                <span class="label" data-labels="CLI Tool">CLI Tool</span>
+                <span class="label" data-labels="Security Research">Security Research</span>
+            </div>
+        </div>
+
+        <div class="toc">
+            <h3>📋 Table of Contents</h3>
+            <ul>
+                <li><a href="#introduction">1. Introduction</a></li>
+                <li><a href="#project-overview">2. Project Overview</a></li>
+                <li><a href="#tool-architecture">3. Tool Architecture</a></li>
+                <li><a href="#rust-highlights">4. Rust Code Highlights</a></li>
+                <li><a href="#why-rust">5. Why Rust?</a></li>
+                <li><a href="#source-code">6. Source Code and Repository</a></li>
+                <li><a href="#examples">7. Example Usage and Output</a></li>
+                <li><a href="#conclusion">8. Conclusion</a></li>
+            </ul>
+        </div>
+
+        <section id="introduction">
+            <h2>Introduction</h2>
+            <p><strong>aptmap</strong> is a cybersecurity tool designed to help analysts, researchers, and defenders map Advanced Persistent Threat (APT) groups to their known tactics, techniques, and procedures (TTPs), leveraging the MITRE ATT&CK framework. Understanding which techniques are associated with which groups is crucial for threat intelligence, incident response, and defensive prioritization.</p>
+            <p><strong>Where is aptmap useful?</strong></p>
+            <ul>
+                <li>Security Operations Centers (SOC) for rapid triage and threat hunting</li>
+                <li>Threat intelligence teams to enrich reports and briefings</li>
+                <li>Red/blue team exercises to simulate realistic adversary behaviors</li>
+                <li>Researchers studying the evolution of APT groups and their TTPs</li>
+            </ul>
+        </section>
+
+        <section id="project-overview">
+            <h2>Project Overview</h2>
+            <p><strong>aptmap</strong> bridges the gap between raw threat intelligence and actionable defense by mapping APT groups to their real-world techniques, all powered by a robust, safe, and fast Rust backend. It's a valuable tool for anyone needing to understand or defend against advanced adversaries.</p>
+            <h3>Key Features</h3>
+            <ul>
+                <li>Maps APT groups to MITRE ATT&CK techniques</li>
+                <li>Fast CLI queries for groups, techniques, and mappings</li>
+                <li>Uses structured MITRE ATT&CK data (JSON)</li>
+                <li>Modular, extensible Rust codebase</li>
+                <li>Open source and easy to extend</li>
+            </ul>
+            <h3>Example Use Cases</h3>
+            <ul>
+                <li>List all APT groups: <span class="code-block">aptmap list-groups</span></li>
+                <li>Show techniques used by APT28: <span class="code-block">aptmap show-techniques apt28</span></li>
+                <li>Find groups using a specific technique: <span class="code-block">aptmap find-groups T1059</span></li>
+            </ul>
+        </section>
+
+        <section id="tool-architecture">
+            <h2>Tool Architecture</h2>
+            <p>The <strong>aptmap</strong> tool is implemented in Rust, chosen for its performance, safety, and reliability—qualities essential for security tooling.</p>
+            <h3>Project Structure</h3>
+            <div class="code-block">aptmap/
+  app/
+    aptmap/
+      Cargo.toml
+      src/
+        main.rs
+        aptmap.rs
+        help.rs
+        mitre/
+          actors/
+            apt28.rs
+            apt36.rs
+            mod.rs
+          groups.rs
+          help.rs
+          mod.rs
+      enterprise-attack.json
+</div>
+            <h3>Key Components</h3>
+            <ul>
+                <li><strong>main.rs:</strong> Entry point, CLI argument parsing, command dispatch</li>
+                <li><strong>aptmap.rs:</strong> Core logic for mapping groups to techniques</li>
+                <li><strong>help.rs:</strong> CLI help and usage instructions</li>
+                <li><strong>mitre/:</strong> MITRE ATT&CK data modules (actors, groups, helpers)</li>
+                <li><strong>enterprise-attack.json:</strong> MITRE ATT&CK matrix and group/technique data</li>
+            </ul>
+        </section>
+
+        <section id="rust-highlights">
+            <h2>Rust Code Highlights</h2>
+            <p><strong>aptmap</strong> leverages Rust's strengths for security tooling:</p>
+            <ul>
+                <li><strong>Strong Typing & Safety:</strong> Ensures data about groups, techniques, and mappings is handled safely, reducing bugs and vulnerabilities.</li>
+                <li><strong>Performance:</strong> Handles large datasets (like the full ATT&CK matrix) with fast lookups and mappings.</li>
+                <li><strong>Modularity:</strong> Organized into logical modules, making it easy to extend (e.g., add new APT groups or techniques).</li>
+                <li><strong>CLI Usability:</strong> Invoked from the command line, with options to query by group, technique, or to list all mappings.</li>
+            </ul>
+            <h3>Sample Rust Code: Group Lookup</h3>
+            <div class="code-block">// Example: Find techniques for a given APT group
+fn show_techniques_for_group(group_name: &str) {
+    let group = mitre::groups::find_group_by_name(group_name);
+    match group {
+        Some(g) => {
+            println!("Techniques for {}:", g.name);
+            for t in g.techniques {
+                println!("- {} ({}): {}", t.id, t.name, t.description);
+            }
+        },
+        None => println!("Group not found: {}", group_name),
+    }
+}
+</div>
+        </section>
+
+        <section id="why-rust">
+            <h2>Why Rust?</h2>
+            <ul>
+                <li><strong>Memory Safety:</strong> No buffer overflows or use-after-free bugs</li>
+                <li><strong>Speed:</strong> Handles large datasets quickly</li>
+                <li><strong>Reliability:</strong> Crashes and panics are minimized, which is critical for security tools</li>
+                <li><strong>Modern Ecosystem:</strong> Growing libraries for security, parsing, and CLI development</li>
+            </ul>
+        </section>
+
+        <section id="source-code">
+            <h2>Source Code and Repository</h2>
+            <p><strong>aptmap</strong> is open source and available for study, modification, and extension.</p>
+            <h3>Project Structure</h3>
+            <div class="code-block">aptmap_project/
+└── aptmap/
+    ├── app/
+    │   └── aptmap/
+    │       ├── Cargo.toml
+    │       ├── src/
+    │       │   ├── main.rs
+    │       │   ├── aptmap.rs
+    │       │   ├── help.rs
+    │       │   └── mitre/
+    │       │       ├── actors/
+    │       │       │   ├── apt28.rs
+    │       │       │   ├── apt36.rs
+    │       │       │   └── mod.rs
+    │       │       ├── groups.rs
+    │       │       ├── help.rs
+    │       │       └── mod.rs
+    │       └── enterprise-attack.json
+    └── first_plan_questions.txt
+</div>
+            <h3>Installation and Usage</h3>
+            <p>To build and run aptmap:</p>
+            <div class="code-block"># Navigate to the aptmap directory
+cd tools/tool7/aptmap_project/aptmap/app/aptmap
+
+# Build the project
+cargo build --release
+
+# Run the tool
+cargo run -- [command]</div>
+        </section>
+
+        <section id="examples">
+            <h2>Example Usage and Output</h2>
+            <p>Below are real-world examples of how to use <strong>aptmap</strong> with its main command-line switches, along with sample outputs:</p>
+
+            <h3>1. Show Usage and Supported Switches</h3>
+            <div class="code-block">aptmap
+# or
+aptmap --help</div>
+            <div class="code-block"> ...________________________________________ Starting APTMAP ________________________________________...
+
+aptmap - APT Actor Information Tool
+
+Usage:
+  aptmap --mitre --actor &lt;APT_NAME&gt;  Look up information about a specific APT actor
+  aptmap --mitre --list-groups      List all MITRE ATT&CK groups
+
+Examples:
+  aptmap --mitre --actor APT28      Show information about APT28 (Fancy Bear)
+  aptmap --mitre --list-groups      Show all MITRE ATT&CK groups
+
+Supported APT Actors:
+  - APT28 (Fancy Bear)
+
+For more information, visit:
+  https://attack.mitre.org/groups/
+</div>
+
+            <h3>2. List All MITRE ATT&CK Groups</h3>
+            <div class="code-block">aptmap --mitre --list-groups</div>
+            <div class="code-block"> ...________________________________________ Starting APTMAP ________________________________________...
+
+Using local enterprise-attack.json
+MITRE ATT&CK Groups:
+
+ID: G0119
+Name: Indrik Spider
+Description: [Indrik Spider](https://attack.mitre.org/groups/G0119) is a Russia-based cybercriminal group that has been active since at least 2014. [Indrik Spider](https://attack.mitre.org/groups/G0119) initially started with the [Dridex](https://attack.mitre.org/software/S0384) banking Trojan, and then by 2017 they began running ransomware operations using [BitPaymer](https://attack.mitre.org/software/S0570), [WastedLocker](https://attack.mitre.org/software/S0612), and Hades ransomware. Following U.S. sanctions and an indictment in 2019, [Indrik Spider](https://attack.mitre.org/groups/G0119) changed their tactics and diversified their toolset.(Citation: Crowdstrike Indrik November 2018)(Citation: Crowdstrike EvilCorp March 2021)(Citation: Treasury EvilCorp Dec 2019)
+---
+ID: G1014
+Name: LuminousMoth
+Description: [LuminousMoth](https://attack.mitre.org/groups/G1014) is a Chinese-speaking cyber espionage group that has been active since at least October 2020. [LuminousMoth](https://attack.mitre.org/groups/G1014) has targeted high-profile organizations, including government entities, in Myanmar, the Philippines, Thailand, and other parts of Southeast Asia. Some security researchers have concluded there is a connection between [LuminousMoth](https://attack.mitre.org/groups/G1014) and [Mustang Panda](https://attack.mitre.org/groups/G0129) based on similar targeting and TTPs, as well as network infrastructure overlaps.(Citation: Kaspersky LuminousMoth July 2021)(Citation: Bitdefender LuminousMoth July 2021)
+---
+ID: G0102
+Name: Wizard Spider
+Description: [Wizard Spider](https://attack.mitre.org/groups/G0102) is a Russia-based financially motivated threat group originally known for the creation and deployment of [TrickBot](https://attack.mitre.org/software/S0266) since at least 2016. [Wizard Spider](https://attack.mitre.org/groups/G0102) possesses a diverse arsenal of tools and has conducted ransomware campaigns against a variety of organizations, ranging from major corporations to hospitals.(Citation: CrowdStrike Ryuk January 2019)(Citation: DHS/CISA Ransomware Targeting Healthcare October 2020)(Citation: CrowdStrike Wizard Spider October 2020)
+---
+</div>
+
+            <h3>3. Show Information About a Specific APT Actor</h3>
+            <div class="code-block">aptmap --mitre --actor APT28</div>
+            <div class="code-block"> ...________________________________________ Starting APTMAP ________________________________________...
+
+Using local enterprise-attack.json
+
+===[ APT28 ]===
+Aliases: APT28, IRON TWILIGHT, SNAKEMACKEREL, Swallowtail, Group 74, Sednit, Sofacy, Pawn Storm, Fancy Bear, STRONTIUM, Tsar Team, Threat Group-4127, TG-4127, Forest Blizzard, FROZENLAKE, GruesomeLarch
+MITRE ID: G0007
+----------------------------------------
+
+[Description]
+[APT28](https://attack.mitre.org/groups/G0007) is a threat group that has been attributed to Russia's General Staff Main Intelligence Directorate (GRU) 85th Main Special Service Center (GTsSS) military unit 26165...
+...
+==[ Tactics & Techniques (MITRE ATT&CK) ]==
+- T1003.003: NTDS
+    Description: Adversaries may attempt to access or create a copy of the Active Directory domain database in order to steal credential information...
+- T1589.001: Credentials
+    Description: Adversaries may gather credentials that can be used during targeting...
+...</div>
+
+            <p><strong>Summary Table</strong></p>
+            <div class="code-block">| Command                                 | Description                                 |
+|------------------------------------------|---------------------------------------------|
+| aptmap or aptmap --help                  | Show usage and supported switches           |
+| aptmap --mitre --list-groups             | List all MITRE ATT&CK groups                |
+| aptmap --mitre --actor &lt;APT_NAME&gt;        | Show info about a specific APT group        |
+</div>
+        </section>
+
+        <section id="conclusion">
+            <h2>Conclusion</h2>
+            <p><strong>aptmap</strong> is a practical, extensible tool for mapping APT groups to MITRE ATT&CK techniques, built with a focus on security, performance, and usability. By leveraging Rust, it ensures reliability and safety for security professionals and researchers. Whether you're in a SOC, a research lab, or just learning about adversary mapping, aptmap provides a solid foundation for threat intelligence work.</p>
+            <div class="highlight">
+                <p><strong>Key Takeaways:</strong></p>
+                <ul>
+                    <li>Bridges threat intelligence and actionable defense</li>
+                    <li>Rust-powered for safety and speed</li>
+                    <li>Modular, extensible, and open source</li>
+                    <li>Ideal for SOCs, researchers, and security enthusiasts</li>
+                </ul>
+            </div>
+        </section>
+
+        <a href="../../index.html" class="back-link">← Back to Home</a>
+    </div>
+</body>
+</html> 

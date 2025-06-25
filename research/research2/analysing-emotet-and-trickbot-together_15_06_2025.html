@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysing Emotet and Trickbot Together - Threat Research</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2em;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 3em;
+            border-bottom: 2px solid #00ff00;
+            padding-bottom: 2em;
+        }
+        h1 {
+            font-size: 3em;
+            margin-bottom: 0.5em;
+            color: #00ff00;
+        }
+        .subtitle {
+            font-size: 1.2em;
+            color: #cccccc;
+            font-style: italic;
+        }
+        .meta {
+            color: #888888;
+            font-size: 0.9em;
+            margin-top: 1em;
+        }
+        h2 {
+            font-size: 2em;
+            color: #00ff00;
+            margin-top: 2em;
+            margin-bottom: 1em;
+            border-left: 4px solid #00ff00;
+            padding-left: 1em;
+        }
+        h3 {
+            font-size: 1.5em;
+            color: #00ff00;
+            margin-top: 1.5em;
+            margin-bottom: 0.8em;
+        }
+        p {
+            font-size: 1.1em;
+            margin-bottom: 1.5em;
+            text-align: justify;
+        }
+        .image-container {
+            text-align: center;
+            margin: 2em 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+        }
+        .image-caption {
+            color: #888888;
+            font-size: 0.9em;
+            margin-top: 0.5em;
+            font-style: italic;
+        }
+        .code-block {
+            background-color: #1a1a1a;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 1em;
+            margin: 1.5em 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.4;
+        }
+        .highlight {
+            background-color: #1a1a1a;
+            border-left: 4px solid #ff6b6b;
+            padding: 1em;
+            margin: 1.5em 0;
+        }
+        .back-link {
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            font-size: 1.1em;
+            padding: 0.8em 1.5em;
+            border: 2px solid white;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            margin-top: 2em;
+        }
+        .back-link:hover {
+            background-color: white;
+            color: black;
+        }
+        .toc {
+            background-color: #1a1a1a;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 1.5em;
+            margin: 2em 0;
+        }
+        .toc h3 {
+            margin-top: 0;
+        }
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .toc li {
+            margin-bottom: 0.5em;
+        }
+        .toc a {
+            color: #00ff00;
+            text-decoration: none;
+        }
+        .toc a:hover {
+            text-decoration: underline;
+        }
+        .github-link {
+            color: #00ff00;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .github-link:hover {
+            text-decoration: underline;
+        }
+        ul {
+            margin-bottom: 1.5em;
+        }
+        li {
+            margin-bottom: 0.5em;
+        }
+        .ioc-section {
+            background-color: #1a1a1a;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 1.5em;
+            margin: 2em 0;
+        }
+        .ioc-section h3 {
+            margin-top: 0;
+            color: #00ff00;
+        }
+        .hash-list {
+            font-family: 'Courier New', monospace;
+            background-color: #000000;
+            border: 1px solid #333333;
+            border-radius: 5px;
+            padding: 1em;
+            margin: 1em 0;
+            color: #00ff00;
+        }
+        .conclusion {
+            background-color: #1a1a1a;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 1.5em;
+            margin: 2em 0;
+        }
+        .conclusion h3 {
+            margin-top: 0;
+            color: #00ff00;
+        }
+        .references {
+            background-color: #1a1a1a;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 1.5em;
+            margin: 2em 0;
+        }
+        .references h3 {
+            margin-top: 0;
+            color: #00ff00;
+        }
+        .references ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .references li {
+            margin-bottom: 1em;
+            padding-left: 1.5em;
+            position: relative;
+        }
+        .references li:before {
+            content: "•";
+            color: #00ff00;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+        .references a {
+            color: #00ff00;
+            text-decoration: none;
+        }
+        .references a:hover {
+            text-decoration: underline;
+        }
+        .flowchart {
+            background-color: #1a1a1a;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 1.5em;
+            margin: 2em 0;
+            text-align: center;
+        }
+        .flowchart h3 {
+            margin-top: 0;
+            color: #00ff00;
+        }
+        .flowchart-content {
+            background-color: #000000;
+            border: 1px solid #333333;
+            border-radius: 5px;
+            padding: 1.5em;
+            margin: 1em 0;
+        }
+        .flowchart-step {
+            display: inline-block;
+            background-color: #1a1a1a;
+            border: 1px solid #00ff00;
+            padding: 0.8em 1.5em;
+            margin: 0.5em;
+            border-radius: 25px;
+            font-weight: bold;
+            color: #00ff00;
+        }
+        .arrow {
+            font-size: 1.5em;
+            margin: 0 0.5em;
+            color: #00ff00;
+        }
+        .wide-image-scroll {
+            overflow-x: auto;
+            background: #111;
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+            padding: 1em 0;
+            margin: 2em 0;
+        }
+        .wide-image-scroll img {
+            max-width: none;
+            width: auto;
+            min-width: 600px;
+            display: block;
+        }
+        .small-image {
+            max-width: 400px;
+            width: 100%;
+            height: auto;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Analysing Emotet and Trickbot Together</h1>
+            <div class="subtitle">A Comprehensive Threat Research Analysis</div>
+            <div class="meta">
+                Published: June 02, 2020 | Author: SV | Reading Time: 15 minutes
+            </div>
+        </div>
+
+        <div class="toc">
+            <h3>📋 Table of Contents</h3>
+            <ul>
+                <li><a href="#introduction">1. Introduction</a></li>
+                <li><a href="#initial-analysis">2. Initial Analysis</a></li>
+                <li><a href="#decryption-process">3. Decryption Process</a></li>
+                <li><a href="#trickbot-loader">4. Trickbot Loader Analysis</a></li>
+                <li><a href="#pe-binary">5. PE Binary Payload Analysis</a></li>
+                <li><a href="#technical-indicators">6. Technical Indicators</a></li>
+                <li><a href="#conclusion">7. Conclusion</a></li>
+                <li><a href="#references">8. References</a></li>
+            </ul>
+        </div>
+
+        <section id="introduction">
+            <h2>Introduction</h2>
+            <p>Emotet is a modular malware that has advanced capabilities to deliver other sophisticated threats. Emotet initially appeared in 2014 as banking trojan, has evolved now into more modularized version to carry out other malicious actions. Trickbot is banking trojan that once steals banking related information from the computer. Trickbot is also a modular malware, the threat actors use it to deploy their malicious codes.</p>
+            
+            <p>I have come upon a sample that belongs to the Emotet strain. Trickbot is embedded with the Emotet strain. Once Trickbot starts infection, it connects to a malicious domain to probably download other threats.</p>
+            
+            <p>The Emotet have cost some of the government's 1 million USD per incident to remediate.</p>
+            
+            <p>Emotet has polymorphic capabilities that I have observed in this strain too. Besides that, I have observed sever stealthy behaviors that are used to evade security technologies like antivirus solutions.</p>
+            
+            <p>The Trickbot is encrypted with RC4 and decrypted on the fly before triggering the execution. The malware uses Process Environment Block (PEB) to resolve API addresses.<sup>[1]</sup></p>
+            
+            <p>The Emotet starts by loading the encrypted payload into the memory. This payload consists of two parts, a loader and PE binary. Loading and decryption happens via resolved APIs. Once the decryption happens, the control is given to the loader that is available in the form of shellcode. The loader takes the PE embedded on its tail. The loader utilizes code injection techniques before transferring the control to the PE block.<sup>[7]</sup> The embedded PE file is flagged as Trojan Mikey, however the domain it connects is also used by Trickbot. Besides, I suspect that Emotet loader uses Return Oriented Programming (ROP) to achieve polymorphism and code flow obfuscation.<sup>[8]</sup> We are not sure, as this could also be the result of modern compiler techniques.</p>
+            
+            <p>The overall flow of this threat is like this.</p>
+            
+            <p>In this document, we analyze the Emotet strain that dropped Trickbot. Trickbot at later stage prepares to download other malware.</p>
+
+            <div class="flowchart">
+                <h3> Emotet Lifecycle</h3>
+                <div class="flowchart-content">
+                    <div class="flowchart-step">Emotet Loader</div>
+                    <span class="arrow">→</span>
+                    <div class="flowchart-step">Trickbot</div>
+                    <span class="arrow">→</span>
+                    <div class="flowchart-step">C&C Communication</div>
+                    <span class="arrow">→</span>
+                    <div class="flowchart-step">Additional Payloads</div>
+                </div>
+            </div>
+        </section>        
+
+        
+
+        <section id="initial-analysis">
+            <h2>Initial Analysis</h2>
+            <p>Approximately 75% of security products detected the sample as malicious, with most flagging it as Emotet. The initial process of the Emotet is to load the first stage payload, which is embedded as shellcode and encrypted using the RC4 algorithm.<sup>[1]</sup></p>
+
+            <div class="image-container">
+                <img src="img1.png" alt="Emotet Analysis Screenshot">
+                <div class="image-caption">security technologies flagging the sample as Emotet</div>
+            </div>
+
+            <div class="image-container">
+                <img src="img3.png" alt="Emotet Analysis Screenshot">
+                <div class="image-caption">Figure 3 - Flagged as Emotet</div>
+            </div>
+
+
+            <div class="image-container">
+                <img src="img4.png" alt="Emotet Analysis Screenshot">
+                <div class="image-caption">Figure 4 - Flagged as Emotet</div>
+            </div>  
+            
+            <div class="highlight">
+                <strong>Key Finding:</strong> The shellcode is decrypted using a series of cryptographic functions, with the cryptographic key derived using MD5 hash.<sup>[2]</sup> The string '9Ml3cd{pH#e|9z3Y@k{GnWcnlJqyJqIyrZ' is added to the hash data before generating the key.
+            </div>
+        </section>
+
+        <div class="image-container">
+            <img src="img5.png" alt="Emotet Analysis Screenshot">
+            <div class="image-caption">Figure 5 - calling the function to begin the hash process</div>
+        </div>
+
+        <section id="decryption-process">
+            <h2>Decryption Process</h2>
+            <p>The decryption process follows these steps:</p>
+            <ul>
+                <li>The address 0x18460C holds the Algorithm ID. 0x00008003 refers to the MD5 hashing 
+                    algorithm. This call prepares hashing of the data.</li>
+
+                <div class="image-container">
+                    <img src="img6.png" alt="Emotet Analysis Screenshot">
+                    <div class="image-caption">Figure 6 - creation of CSP hash object</div>
+                </div>                
+
+                <li>The 'CryptHashData' function is called to create a CSP hash object. It is interesting to note that string '9Ml3cd{pH#e|9z3Y@k{GnWcnlJqyJqIyrZ' is added to the hash data before generating the key.</li>
+
+                <li>Finally, after the hash object is created, the shellcode is decrypted using RC4 algorithm. The identifier 0x00006801 is used and it refers to RC4 stream encryption algorithm.</li>
+                
+                <li>Initially, the encrypted shellcode is loaded into the region 0x003E0000. As shown below, the shellcode at this region is encrypted.</li>                
+            </ul>
+
+            <div class="image-container">
+                <img src="img7.png" alt="Emotet Analysis Screenshot">
+                <div class="image-caption">Figure 7 - the routine that decrypts the shellcode. i.e. CryptEncrypt</div>
+            </div>
+
+            <p>The encrypted shellcode is placed at this region using the 'memcpy' routine.</p>
+
+            <div class="image-container">
+                <img src="img8.png" alt="Emotet Analysis Screenshot">
+                <div class="image-caption">Figure 8 - the routine that decrypts the shellcode. i.e. CryptEncrypt</div>
+            </div>
+
+            <p>Once the decryption step is completed, the shellcode becomes more meaningful.<sup>[5]</sup></p>
+
+            <div class="image-container">
+                <img src="img9.png" alt="Emotet Analysis Screenshot">
+                <div class="image-caption">Figure 9 - after the decryption of the shellcode</div>
+            </div>
+
+            <p>As with most of the shellcode, the 
+first two instructions find the address from where it is running. From 
+this place, add 0x53A, we notice the presence of a PE block. Probably the 0x18D3A is the size of this PE.</p>
+
+            <div class="image-container">
+                <img src="img10.png" alt="Emotet Analysis Screenshot">
+<div class="image-caption">Figure 10 - the disassembly view of the shellcode placed at 0x003E0000</div>
+            </div>
+
+            <p>We cross verified whether this region (0x003E0000) has the execution property. The property of this memory region is set to RWX.<sup>[4]</sup></p>
+
+            <div class="image-container">
+                <img src="img11.png" alt="Emotet Analysis Screenshot">
+                <div class="image-caption">Figure 11 - the property of the region set to RWX</div>
+            </div>
+
+            <p>Before decryption and transferring the control to this region, it is prepared by allocating memory and copying the encrypted shellcode. As with most of the malware, the 'VirtualAlloc' family of API is called to allocate the memory region.</p>
+
+            <div class="image-container">
+                <img src="img12.png" alt="Emotet Analysis Screenshot">
+                <div class="image-caption">Figure 12 - allocation of new region to host the shellcode</div>
+            </div>
+
+            <p>Before the allocation, the region 0x003E0000 was not available within the process.</p>
+
+            <div class="image-container">
+                <img src="img13.png" alt="Emotet Analysis Screenshot">
+                <div class="image-caption">Figure 13 - the region does not exist before all this</div>
+            </div>
+
+            <p>After the allocation is completed, the memory is filled with NULL bytes. The initial view of the memory region before copying the encrypted shellcode.</p>
+
+            <div class="image-container">
+                <img src="img14.png" alt="Emotet Analysis Screenshot">
+                <div class="image-caption">Figure 14 - the view of the region after the allocation</div>
+            </div>
+
+
+            <p>Around 19000 bytes are copied into this region. Once the copy process is finished, this region is decrypted.</p>
+
+            <div class="image-container">
+                <img src="img15.png" alt="Emotet Analysis Screenshot">
+                <div class="image-caption">Figure 15 - the encrypted shellcode is copied</div>
+            </div>
+
+            <p>As any modern malware, Emotet creates a table of addresses for various APIs that it uses.<sup>[9]</sup></p>
+
+            <div class="image-container wide-image-scroll">
+                <img src="img16.png" alt="Emotet Analysis Screenshot">
+                <div class="image-caption">Figure 16 - the table of addresses for various API</div>
+            </div>
+
+            <p>The above table is being referenced at multiple locations. During memory allocation and decryption of first of the shellcode, the required APIs are used from the above table. To name few, the APIs 'GetCurrentProcess', 'ZwAllocateVirtualMemory', and 'memcpy' are called from the populated address table. As shown below.</p>
+
+            <div class="image-container wide-image-scroll">
+                <img src="img17.png" alt="Emotet Analysis Screenshot">
+                <div class="image-caption">Figure 17 - the table of addresses referenced at 3 places</div>
+            </div>
+
+            <p>After the initial shellcode is sprayed, decrypted and ready to execute, the start address of the shellcode is returned and the execution continues from there.</p>
+
+            <div class="image-container">
+                <img src="img18.png" alt="Emotet Analysis Screenshot">
+                <div class="image-caption">Figure 18 - the function returns the address of the shellcode once it is prepared</div>
+            </div>
+
+            <p>The return address is retrieved. The next step is to jump to this area, and this is achieved here.</p>
+
+            <div class="image-container">
+                <img src="img19.png" alt="Emotet Analysis Screenshot">
+                <div class="image-caption">Figure 19 - The control is handed over to the new region.</div>
+            </div>
+
+            <p>From here the shellcode takes over the control.</p>
+
+            <div class="image-container">
+                <img src="img20.png" alt="Emotet Analysis Screenshot">
+                <div class="image-caption">Figure 20 - landing at the shellcode</div>
+            </div>
+
+            <h3>Trickbot Loader</h3>
+
+            <p>There were two important regions within this shellcode. The first region objective is to load the second region. The second region holds a PE binary.</p>
+
+            <p>It turns out that the first part of the loader belongs to Trickbot family or could be part of the Emotet loader. In Ryuk ransomware incidents, Emotet and Trickbot were extensively used together.</p>
+
+            <p>The execution of shellcode starts at 0x003E0000</p>
+
+            <div class="image-container">
+                <img src="img21.png" alt="Emotet Analysis Screenshot">
+                <div class="image-caption">Figure 21 - start of execution from new loader</div>
+            </div>
+
+            <p>The presence of the PE file can be found by observing the values of certain registers before calling 0x003E002D. The length of this PE file is 0x18D3A. Interesting that a string 'dave' is found at the end of the PE file.</p>
+
+            <div class="image-container">
+                <img src="img22.png" alt="Emotet Analysis Screenshot">
+                <div class="image-caption">Figure 22 - presence of PE file within the newly created region</div>
+            </div>
+
+            <p>This PE file was carved out and scanned through Virustotal. Many AV's flagged it as Trojan downloader.</p>
+
+            <div class="image-container">
+                <img src="img23.png" alt="Emotet Analysis Screenshot">
+                <div class="image-caption">Figure 23 - PE file scanned through Virustotal</div>
+            </div>
+
+            <p>The shellcode contains a Trojan downloader in its tail. Some AV software flags this as Trojan Mikey. The first thing the shellcode does is it calls the 'GetNativeSystemInfo' function to collect various information about the system. At the address 0x0018F634 the system information is stored.</p>
+
+            <p>After this, a new memory region (0x005D0000) is created using 'VirtualAlloc'. The malware prepares a table of addresses for various APIs. This behavior is very common to both Emotet and Trickbot families. The table is placed within the newly created region.</p>
+
+            <div class="image-container wide-image-scroll">
+                <img src="img24.png" alt="Figure 24 - table of various API function addresses">
+                <div class="image-caption">Figure 24 - table of various API function addresses</div>
+            </div>
+
+            <p>Once the table is prepared, the next step is creating the section headers. The embedded PE file has five sections.</p>
+
+            <div class="image-container">
+                <img src="img25.png" alt="Emotet Analysis Screenshot">
+                <div class="image-caption">Figure 25 - The PE header of the binary embedded</div>
+            </div>
+
+            <p>The loader places these sections at different offsets and set these regions with different memory protection schemes. The loader places the sections at the new region created. I could see that loader is using the PE injection technique and preparing stage two.<sup>[6]</sup></p>
+
+            <div class="image-container wide-image-scroll">
+                <img src="img26.png" alt="Emotet Analysis Screenshot">
+                <div class="image-caption">Figure 26 - the five sections are created</div>
+            </div>
+
+            <p>The following part of the loader ensures that all the sections are copied into the new region. The total number of regions are stored in the 'edx' register.</p>
+
+            <div class="image-container wide-image-scroll">
+                <img src="img27.png" alt="Emotet Analysis Screenshot">
+                <div class="image-caption">Figure 27 - routine responsible for copying the image if the embedded PE</div>
+            </div>
+
+            The newly created memory region is set to run the injected PE. The following routine ensures that.
+
+            <div class="image-container wide-image-scroll">
+                <img src="img28.png" alt="Emotet Analysis Screenshot">
+                <div class="image-caption">Figure 28 - jump to the entry point of the injected PE</div>
+            </div>
+
+            <p>The jump happens to 0x005D1D95. The OEP of the PE is 0x00001D95. The PE from the shellcode was initially loaded into 0x005D0000, plus the OEP results in 0x005D1D95.</p>
+
+            <div class="image-container wide-image-scroll">
+                <img src="img29.png" alt="Emotet Analysis Screenshot">
+                <div class="image-caption">Figure 29 - the OEP from the optional header</div>
+            </div>
+
+            <h3>PE binary Payload</h3>
+
+            <p>I have already seen that this strain drops the Mikey Trojan. The Mikey Trojan uses the Microsoft Foundation Classes (MFC).</p>
+
+            <p>In this portion of analysis, limited behavior of the Mikey Trojan is analyzed. The Trojan Mikey first tries to access the folders and files that are related to internet browsing.</p>
+
+            <div class="image-container wide-image-scroll">
+                <img src="img30.png" alt="Emotet Analysis Screenshot">
+                <div class="image-caption">Figure 30 - list of files and folders being accessed</div>
+            </div>
+
+            <p>A domain is contacted for sending the information. The parts of the domain are embedded in form of multiple characters. The domain string is formed at multiple places, to avoid detection.<sup>[10]</sup></p>
+
+            <div class="image-container wide-image-scroll">
+                <img src="img31.png" alt="Emotet Analysis Screenshot">
+                <div class="image-caption">Figure 31 - The domain string generation</div>
+            </div>
+
+            <p>Once the domain string is formed, it is first contacted, and the current temporary path of the system is sent.<sup>[11]</sup></p>
+
+            <div class="image-container wide-image-scroll">
+                <img src="img32.png" alt="Emotet Analysis Screenshot">
+                <div class="image-caption">Figure 32 - The connection to the malicious domain</div>
+            </div>
+
+            <p>It is interesting to note that the domain is also used by Trickbot to download additional payloads.</p>
+
+            <p>The malware while performing its actions, also displays MS Word like window.<sup>[12]</sup></p>
+
+            <div class="image-container">
+                <img src="img33.png" alt="Emotet Analysis Screenshot">
+                <div class="image-caption">Figure 33 - routine that opens a window</div>
+            </div>
+
+            <div class="image-container">
+                <img src="img34.png" alt="Figure 34 - A new dialog window is opened">
+                <div class="image-caption">Figure 34 – A new dialog window is opened</div>
+            </div>
+
+            <p>After some analysis, it was found that the malware parses all the information that is stored in Windows environment variables.<sup>[13]</sup></p>
+
+            <div class="image-container">
+                <img src="img35.png" alt="Figure 35 - the list of information parsed by the malware">
+                <div class="image-caption">Figure 35 - the list of information parsed by the malware</div>
+            </div>
+
+            <p>The analysis was stopped at this point, as the domain it tries to connect was taken down. We believe that the motive of the threat actors is to download more threats or to steal information.</p>
+
+
+        <section id="technical-indicators">
+            <h2>Technical Indicators</h2>
+            <div class="ioc-section">
+                <h3>Indicators of Compromise (IOCs)</h3>
+                <div class="hash-list">
+<strong>MD5 Hashes:</strong><br>
+83eb9dfc97cc24aabd529f188c51fc29<br>
+f097ca21830acec50af81eca913cab33<br>
+74bfc94b3745b708cce836ea7fc2b057<br>
+a943cdbbd7491cdfd98309757a752d84<br>
+4b144015167e713fa10851ddbba1cedd<br><br>
+<strong>SHA256 Hashes:</strong><br>
+aadb5441e704d27a4dbce1a3cfb4f53943437f83cde09bccf1329f923ba1de6a<br>
+e059780280c31c7f75ca6935eb154875793cdc0b7038a0107964b8590abb09c3<br><br>
+<strong>Malicious Domain:</strong><br>
+qfcallc[.]com/rtsdfv.encrypted<br>
+</div>
+            </div>
+        </section>
+
+        <section id="malware-techniques">
+            <h2>Techniques used by Malware</h2>
+            <ol>
+                <li><strong>RC4 Encryption of Shellcode:</strong> The initial payload is encrypted using the RC4 algorithm, making static analysis and detection more difficult. <br><em>— This technique is used by the malware to evade signature-based detection and hinder reverse engineering.</em></li>
+                <li><strong>MD5-based Key Derivation:</strong> The cryptographic key for RC4 decryption is derived using an MD5 hash, with a specific string added to the hash data before key generation. <br><em>— This technique is used to generate a unique decryption key, making it harder for analysts to decrypt the payload without knowing the exact process.</em></li>
+                <li><strong>Process Environment Block (PEB) API Resolution:</strong> The malware uses the PEB to resolve API addresses dynamically, a technique that helps evade static detection and is seen in advanced banking trojans. <br><em>— This technique is used to avoid static API imports, making it more difficult for security tools to detect malicious behavior based on imported functions.</em></li>
+                <li><strong>Memory Allocation with RWX Permissions:</strong> The malware allocates memory regions with Read-Write-Execute permissions using VirtualAlloc, preparing space for decrypted shellcode and injected PE files. <br><em>— This technique is used to ensure the payload can be written, modified, and executed in memory, enabling in-memory execution and injection.</em></li>
+                <li><strong>Shellcode Decryption and Execution:</strong> The encrypted shellcode is decrypted in memory and executed, with the loader transferring control to the decrypted code. <br><em>— This technique is used to keep the payload hidden until runtime, reducing the chance of detection by static analysis tools.</em></li>
+                <li><strong>PE Injection:</strong> The loader copies PE sections into newly allocated memory, sets appropriate memory protections, and jumps to the original entry point (OEP) of the injected PE, enabling execution of embedded payloads. <br><em>— This technique is used to run additional malicious code within the context of the current process, bypassing some security controls.</em></li>
+                <li><strong>Code Injection Techniques:</strong> The loader utilizes code injection to transfer execution to the embedded PE, allowing the malware to run additional payloads within the same process. <br><em>— This technique is used to execute malicious code stealthily and maintain persistence within the infected system.</em></li>
+                <li><strong>Return Oriented Programming (ROP) / Obfuscation:</strong> The loader may use ROP or compiler-based techniques to achieve polymorphism and obfuscate code flow, complicating analysis and detection. <br><em>— This technique is used to make reverse engineering and analysis more challenging by hiding the true execution flow.</em></li>
+                <li><strong>API Address Table Creation:</strong> The malware creates and uses a table of API addresses, referencing them dynamically during execution for various operations such as memory allocation and data copying. <br><em>— This technique is used to avoid static linking and make detection based on API usage more difficult.</em></li>
+                <li><strong>Domain String Obfuscation:</strong> The malware constructs domain strings from multiple character parts at different locations in memory, making it harder for static analysis tools to detect C&C domains. <br><em>— This technique is used to hide the command and control infrastructure from automated scanners and analysts.</em></li>
+                <li><strong>Data Exfiltration to C&C:</strong> The malware contacts a constructed domain and sends system information, such as the current temporary path, to the command and control server. <br><em>— This technique is used to exfiltrate valuable information to the attacker without raising immediate suspicion.</em></li>
+                <li><strong>Stealth via Fake Window:</strong> The malware displays a fake MS Word-like window to disguise its activity and avoid user suspicion during execution. <br><em>— This technique is used to trick users into thinking a legitimate application is running, reducing the chance of discovery.</em></li>
+                <li><strong>Parsing Windows Environment Variables:</strong> The malware parses and collects information from Windows environment variables, likely for reconnaissance and further exploitation. <br><em>— This technique is used to gather system-specific information that can be used for further attacks or to tailor the malware's behavior.</em></li>
+            </ol>
+        </section>
+
+        <section id="conclusion">
+            <h2>Conclusion</h2>
+            <div class="conclusion">
+                <h3>📊 Analysis Summary</h3>
+                <p>Threat actors go to great lengths to carry out their malicious activities. Both Emotet and Trickbot represent modern malware threats, and it's rare to see threat actors utilize combinations of two different threats to achieve their objectives.</p>
+                
+                <p>The analysis was limited by the takedown of the malicious domain used for additional payload downloads. However, we observed that some Trickbot and Emotet malware variants load Ryuk ransomware. Both threats initially operated as banking credential stealers but have evolved into Malware-as-a-Service (MaaS) providers.</p>
+                
+                <p>This analysis demonstrates the sophisticated nature of modern malware families and the importance of understanding their modular capabilities and evasion techniques for effective threat detection and response.</p>
+            </div>
+            <div style="margin-top:2em; color:#cccccc; font-size:1em; font-style:italic; text-align:center;">
+                Note: I am not a seasoned malware analyst, but I love reverse engineering and do this kind of activity as part of my work as well as hobby research.
+            </div>
+        </section>
+
+        <section id="references">
+            <h2>References</h2>
+            <div class="references">
+                <h3>📚 Additional Resources</h3>
+                <ul>
+                    <li><a href="https://www.virustotal.com/gui/file/e059780280c31c7f75ca6935eb154875793cdc0b7038a0107964b8590abb09c3/detection" target="_blank">VirusTotal Analysis - 55 engines detected this file</a></li>
+                    <li><a href="https://www.us-cert.gov/ncas/alerts/TA18-201A" target="_blank">US-CERT Alert (TA18-201A) Emotet Malware</a></li>
+                </ul>
+            </div>
+        </section>
+
+        <a href="../../index.html" class="back-link">← Back to Home</a>
+    </div>
+</body>
+</html> 

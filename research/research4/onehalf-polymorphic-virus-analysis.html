@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Journey into Cybersecurity: The OneHalf Polymorphic Virus and Early Days of Hacking</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2em;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 3em;
+            border-bottom: 2px solid #00ff00;
+            padding-bottom: 2em;
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 0.5em;
+            color: #00ff00;
+        }
+        .subtitle {
+            font-size: 1.2em;
+            color: #cccccc;
+            font-style: italic;
+        }
+        .meta {
+            color: #888888;
+            font-size: 0.9em;
+            margin-top: 1em;
+        }
+        h2 {
+            font-size: 2em;
+            color: #00ff00;
+            margin-top: 2em;
+            margin-bottom: 1em;
+            border-left: 4px solid #00ff00;
+            padding-left: 1em;
+        }
+        h3 {
+            font-size: 1.5em;
+            color: #00ff00;
+            margin-top: 1.5em;
+            margin-bottom: 0.8em;
+        }
+        p {
+            font-size: 1.1em;
+            margin-bottom: 1.5em;
+            text-align: justify;
+        }
+        .image-container {
+            text-align: center;
+            margin: 2em 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+        }
+        .image-caption {
+            color: #888888;
+            font-size: 0.9em;
+            margin-top: 0.5em;
+            font-style: italic;
+        }
+        .code-block {
+            background-color: #1a1a1a;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 1em;
+            margin: 1.5em 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.4;
+        }
+        .highlight {
+            background-color: #1a1a1a;
+            border-left: 4px solid #ff6b6b;
+            padding: 1em;
+            margin: 1.5em 0;
+        }
+        .back-link {
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            font-size: 1.1em;
+            padding: 0.8em 1.5em;
+            border: 2px solid white;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            margin-top: 2em;
+        }
+        .back-link:hover {
+            background-color: white;
+            color: black;
+        }
+        ul.toc {
+            background: #111;
+            border: 1px solid #00ff00;
+            border-radius: 6px;
+            padding: 1em 2em;
+            margin-bottom: 2em;
+            color: #00ff00;
+        }
+        ul.toc li {
+            margin-bottom: 0.5em;
+        }
+        ul.toc a {
+            color: #00ff00;
+            text-decoration: underline;
+        }
+        ul.toc a:hover {
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>My Journey into Cybersecurity: The OneHalf Polymorphic Virus and Early Days of Hacking</h1>
+            <div class="subtitle">A college-day journey into one of the most fascinating polymorphic viruses</div>
+            <div class="meta">
+                Research Date: 1997–2024 | Author: SV | Reading Time: 15 minutes
+            </div>
+        </div>
+
+        <h2>Table of Contents</h2>
+        <ul class="toc">
+            <li><a href="#introduction">Introduction</a></li>
+            <li><a href="#background">Background &amp; Nostalgia</a></li>
+            <li><a href="#polymorphic">Polymorphic Logic</a></li>
+            <li><a href="#decryption">Decryption Routine in C</a></li>
+            <li><a href="#technical">Technical Analysis</a></li>
+            <li><a href="#techniques">Techniques used by OneHalf</a></li>
+            <li><a href="#conclusion">Conclusion</a></li>
+            <li><a href="#personal">Personal Note</a></li>
+        </ul>
+
+        <h2 id="introduction">Introduction</h2>
+        <p>My first encounter with the OneHalf virus was in 1994, when it infected my computer. At that time, my programming knowledge was limited to GW Basic and Turbo Basic—I had no idea how to reverse engineer or analyze malware. It was only after 1994 that I began learning C, and during my college days, I got the chance to dive deeper into the world of computer viruses, binary files, and low-level programming. Books like <i>Odyssey in C</i> introduced me to the world of anti-virus writing, and I experimented with debuggers like SoftICE, among others. My journey to analyze and understand viruses like OneHalf started in 1994 and continued through 2004.</p>
+        <p>Back in the early 90's, there was a computer virus called <b>OneHalf</b>. It was a very good example of a polymorphic malware that also encrypted files. Instead of encrypting files directly, it encrypted the disk cylinder. There was a strategy to encrypt a certain number of cylinders and when to stop encryption. At that time, the polymorphic logic was very interesting: OneHalf placed its code at multiple locations within the host file (file infector), used XOR encryption, and multiple <code>jmp</code> instructions to transfer control. Most antivirus software at the time were successful in removing the virus, but ended up keeping encrypted files as such. So, removing the virus without decrypting the files led to corrupted files. Very few at that time were successful in both removing the virus and restoring the encrypted files.</p>
+        <p>The virus displays <code>Dis is onehalf ...</code> when it encrypts half of the cylinder.</p>
+
+        <h2 id="background">Background &amp; Nostalgia</h2>
+        <p>At that time, I analyzed this virus and wrote a C routine to detect it. I was fascinated by the polymorphic code, the reversing strategy, and the C code I wrote to decrypt the polymorphic portion of the malware. The way this malware works—unfortunately, nothing has changed! If you look at the decryption logic I wrote, you can understand how the encryption works and how the XOR key changes for every cycle.</p>
+        <p>The strings from the decrypted stub included the names of some antivirus products of that era, like McAfee, AVG, Microsoft Anti-Virus (MSAV)... The goat file was filled with <code>0xF6</code> to identify the OneHalf region.</p>
+        <p>Makes me nostalgic to think of this: TurboC, Turbo Assembler, Peter Norton's "Assembly Language Book for the IBM PC", Turbo Pascal, <code>debug.exe</code>, etc. The original code was written in TurboC and later ported to run on modern C compilers using Code::Blocks.</p>
+        <p><i>Note: The whole code was ported to run on modern C compilers.</i></p>
+
+        <h2 id="polymorphic">Polymorphic Logic</h2>
+        <p>OneHalf's polymorphic engine was one of its most innovative features. The virus would mutate its decryptor stub on each infection, making static signature detection extremely difficult. The code would use a combination of XOR encryption, register manipulation, and scattered <code>jmp</code> instructions to obfuscate its true behavior.</p>
+        <div class="image-container">
+            <img src="running/ida_full_1.JPG" alt="IDA Pro - OneHalf Polymorphic Stub">
+            <div class="image-caption">Figure 1 - IDA Pro view of the OneHalf polymorphic stub</div>
+        </div>
+        <div class="code-block">
+// Example: Polymorphic decryptor logic (from notes.txt)
+mov     bx, 07A8h
+jmp     loc_10E25
+
+loc_10E25:
+    cmc
+    clc
+    std
+    mov     bp, 44EBh
+    jmp     short loc_10E15
+
+loc_10E15:
+    xor     [bx], bp
+    jmp     loc_11172
+
+loc_11172:
+    add     bp, 2EC0h
+    cmc
+    jmp     loc_11052
+
+loc_11052:
+    stc
+    inc     bx
+    cld
+    jmp     loc_10D5F
+
+loc_10D5F:
+    cmp     bx, 1580h
+    jmp     loc_10E65
+
+loc_10E65:
+    db      36h
+    jnz     short loc_10E15
+    clc
+    jmp     loc_114D7
+        </div>
+        <p>This logic, with its ever-changing structure, made OneHalf a nightmare for static analysis tools of the era.</p>
+
+        <h2 id="decryption">Decryption Routine in C</h2>
+        <p>To better understand the encryption, I wrote a C routine to decrypt the polymorphic portion of the malware. The following code is a modernized version of that routine, which demonstrates how the XOR key changes for every cycle and how the decryption is performed:</p>
+        <div class="code-block">
+// Decryption routine (from main_0.3.c)
+int decrypt = 1;
+unsigned char fstring[] = { ... };
+unsigned char string[] = { ... };
+
+int main() {
+    short i = 0, j = 0;
+    unsigned short key = 0x44EB;
+    unsigned short *val = string;
+    unsigned short xored = 0;
+    unsigned char c1, c2;
+
+    if(decrypt) {
+        for(j = 0; j < 3544; j+=32) {
+            for(i = 0; i< 32; ++i) {
+                val = &string[j+i];
+                xored = *val ^ key;
+                c1 = (xored << 8) >> 8;
+                c2 = xored >> 8;
+                fstring[j+i] = c1;
+                string[j+i+1] = c2;
+                key += 0x2EC0;
+            }
+        }
+        // print the decrypted assembly
+        for(j = 0; j < 3544; j+=32) {
+            for(i = 0; i< 32; ++i) {
+                c1 = fstring[j+i];
+                printf("%.2X ", c1);
+            }
+            printf("[ ");
+            for(i = 0; i< 32; ++i) {
+                c1 = fstring[j+i];
+                if(c1 > 0x20 && c1 < 0x7F)
+                    printf("%c" , c1);
+                else
+                    printf(".");
+            }
+            puts(" ]");
+        }
+    }
+}
+        </div>
+        <div class="image-container">
+            <img src="running/descryption_in_c.JPG" alt="C Decryption Routine Output">
+            <div class="image-caption">Figure 2 - Output of the C decryption routine for OneHalf</div>
+        </div>
+
+        <h2 id="technical">Technical Analysis</h2>
+        <p>The OneHalf virus was a file infector and a boot sector infector. It encrypted disk cylinders instead of individual files, which made recovery difficult if the virus was removed without proper decryption. The decryption logic was tightly coupled with the polymorphic engine, and the XOR key changed with every cycle, making static analysis and signature-based detection extremely challenging.</p>
+        <p>To analyze the virus, I wrote a C program that contains a hardcoded copy of the encrypted virus stub. My code decrypts this stub, and once decrypted, modern antivirus software like Kaspersky is able to flag and detect the OneHalf virus. This workflow demonstrates how custom tooling can bridge the gap between legacy malware and modern detection engines.</p>
+        <div class="image-container">
+            <img src="running/ida_full_7.JPG" alt="IDA Pro - Decrypted OneHalf Code">
+            <div class="image-caption">Figure 3 - IDA Pro view after decryption of the OneHalf stub</div>
+        </div>
+        <p>OneHalf also left a message on infected systems: <span class="highlight">Dis is onehalf ...</span> when it had encrypted half of the disk cylinders. The decrypted stub also contained references to antivirus products of the era, such as McAfee, AVG, and MSAV, as well as the string <code>COMMAND.MZ</code> and a region filled with <code>0xF6</code> bytes to mark the OneHalf region.</p>
+        <div class="image-container">
+            <img src="running/kaspersky.png" alt="Kaspersky Detection">
+            <div class="image-caption">Figure 4 - Kaspersky flags the OneHalf virus after my C code decrypts the hardcoded virus stub</div>
+        </div>
+        <div class="code-block">
+// Example of decrypted stub strings (from notes.txt)
+5A 01 9F FF 00 00 00 00 43 4F 4D 4D 41 4E 44 00 4D 5A 88 01 0A 00 00 00 20 00 00 00 FF FF F0 FF
+[Z.......COMMAND.MZ..............]
+...
+F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6
+[ ................................]
+        </div>
+        <div class="image-container">
+            <img src="running/before_dec.JPG" alt="Before Decryption">
+            <div class="image-caption">Figure 5 - OneHalf-infected file before decryption</div>
+        </div>
+        <div class="image-container">
+            <img src="running/after_decryption.JPG" alt="After Decryption">
+            <div class="image-caption">Figure 6 - File after successful decryption of OneHalf region</div>
+        </div>
+
+        <h2 id="techniques">Techniques used by OneHalf</h2>
+        <ul>
+            <li><b>Polymorphic Decryptor:</b> The decryptor stub mutates on each infection, making static signature detection extremely difficult. <br><i>Why: This evades antivirus detection by changing the code's appearance every time.</i></li>
+            <li><b>XOR Encryption with Variable Key:</b> The encryption key changes with every cycle, making pattern-based detection and decryption harder. <br><i>Why: This prevents simple static analysis and requires dynamic analysis to recover the original code.</i></li>
+            <li><b>File and Boot Sector Infection:</b> Infects both files and the boot sector, ensuring persistence and making removal more difficult. <br><i>Why: This increases the chance of survival and reinfection after system reboots.</i></li>
+            <li><b>Direct Disk Cylinder Encryption:</b> Encrypts disk cylinders instead of files, making recovery difficult if the virus is removed without decryption. <br><i>Why: This ensures that even if the virus is removed, the data remains inaccessible unless properly decrypted.</i></li>
+            <li><b>Obfuscated Control Flow:</b> Uses multiple <code>jmp</code> instructions and scattered code to confuse static analysis tools. <br><i>Why: This makes reverse engineering and automated analysis much more challenging.</i></li>
+        </ul>
+
+        <h2 id="conclusion">Conclusion</h2>
+        <p>OneHalf remains one of the most fascinating examples of early polymorphic malware. Its combination of polymorphic code, variable-key encryption, and disk-level infection made it a formidable challenge for analysts and antivirus developers. The lessons learned from analyzing OneHalf are still relevant today, as modern malware continues to evolve with similar evasion and persistence techniques.</p>
+
+        <h2 id="personal">Personal Note</h2>
+        <p>Looking back, working on OneHalf during my college days was a formative experience. It taught me the importance of understanding both the technical and strategic aspects of malware. The nostalgia of TurboC, Turbo Assembler, and the early days of reverse engineering still brings a smile. I hope this analysis helps others appreciate the ingenuity (and danger) of early malware, and inspires continued curiosity in the field of cybersecurity.</p>
+        <p>As a hobby, I used to collect computer games using floppy disks. It was during one of these times that OneHalf infected one of my games, and thus began my encounter with this virus.</p>
+
+        <a class="back-link" href="../../index.html">&larr; Back to Index</a>
+    </div>
+</body>
+</html> 

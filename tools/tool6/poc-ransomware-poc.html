@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POC Ransomware (Red Team Simulation, 2019) - VLABS</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #000;
+            color: white;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #111;
+            padding: 30px;
+            border-radius: 10px;
+            border: 2px solid #00ff00;
+        }
+        h1 {
+            color: #00ff00;
+            text-align: center;
+            border-bottom: 2px solid #00ff00;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #00ff00;
+            border-left: 4px solid #00ff00;
+            padding-left: 15px;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #00ff00;
+            margin-top: 25px;
+        }
+        h4 {
+            color: #00ff00;
+            margin-top: 20px;
+        }
+        p {
+            color: white;
+            margin-bottom: 1.5em;
+            text-align: justify;
+        }
+        ul, ol {
+            color: white;
+        }
+        li {
+            color: white;
+            margin-bottom: 0.5em;
+        }
+        .code-block {
+            background-color: #1a1a1a;
+            border: 1px solid #00ff00;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            font-style: italic;
+        }
+        .log-output {
+            background-color: #0a0a0a;
+            border: 1px solid #00ff00;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        .highlight {
+            background-color: #2a2a2a;
+            padding: 10px;
+            border-left: 4px solid #00ff00;
+            margin: 15px 0;
+        }
+        .success {
+            background-color: #1a2a1a;
+            border-left: 4px solid #00ff00;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        .warning {
+            background-color: #2a2a1a;
+            border-left: 4px solid #ffff00;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        .nav-links {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            padding: 5px 10px;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+        }
+        .nav-links a:hover {
+            background-color: #00ff00;
+            color: #000;
+        }
+        .tool-structure {
+            background-color: #1a1a1a;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .image-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+        }
+        .image-caption {
+            margin-top: 5px;
+            font-style: italic;
+            color: #888888;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>POC Ransomware (Red Team Simulation, 2019)</h1>
+        <div class="nav-links">
+            <a href="../../index.html">Back</a>
+        </div>
+        <div class="highlight">
+            <strong>POC Ransomware</strong> - A proof-of-concept ransomware simulation developed for red team engagement and educational purposes. <br> <b>Warning:</b> This project is for demonstration only. Do not use for malicious purposes.
+        </div>
+        <h2>Overview</h2>
+        <p>This project demonstrates a basic ransomware proof-of-concept (POC) developed as part of a red team engagement in 2019. The goal was to simulate ransomware behavior for awareness and defense training, not to cause real harm. The POC changes the desktop wallpaper to a ransom image and optionally displays a dialog box, mimicking the psychological impact of real ransomware without encrypting files.</p>
+        <h3>Main Features</h3>
+        <div class="tool-structure">
+            <ul>
+                <li><strong>Wallpaper Change:</strong> Uses Windows API to set a custom ransom image as the desktop wallpaper.</li>
+                <li><strong>Image Drop:</strong> Drops a ransom image (e.g., poc.jpg) to disk before setting it as wallpaper.</li>
+                <li><strong>Dialog Box:</strong> Optionally displays a dialog box to further simulate ransomware interaction.</li>
+                <li><strong>Minimal/POC Logic:</strong> No real file encryption—focus is on simulation and awareness.</li>
+            </ul>
+        </div>
+        <h2>Code Structure</h2>
+        <div class="tool-structure">
+            <ul>
+                <li><code>main.cpp</code> (C++): Main logic for dropping the image, setting wallpaper, and showing dialog.</li>
+                <li><code>poc.c</code> (C): Minimal POC for wallpaper change using Windows API.</li>
+                <li><code>resource.h</code>, <code>resource.rc</code>: Resource definitions for dialog box and icons.</li>
+                <li>Image files: <code>poc.png</code>, <code>poc.jpg</code>, <code>Sc.png</code> (screenshots/ransom images).</li>
+            </ul>
+        </div>
+        <h3>Key Code Snippets</h3>
+        <h4>Minimal Wallpaper Change (poc.c)</h4>
+        <div class="code-block">
+#include &lt;stdio.h&gt;
+#include &lt;windows.h&gt;
+
+void main()
+{
+    printf("hello world! \n");
+    SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, "C:\\poc\\poc.png", SPIF_SENDCHANGE);
+}
+        </div>
+        <h4>Full POC Logic (main.cpp)</h4>
+        <div class="code-block">
+// ... existing code ...
+HANDLE fp;
+fp = CreateFile("poc.jpg", GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+WriteFile(fp, IMAGE, 68608, NULL, NULL);
+CloseHandle(fp);
+SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, (void*)newdir.c_str(), SPIF_SENDCHANGE);
+// ... existing code ...
+        </div>
+        <div class="image-container">
+            <img src="poc.png" alt="Ransomware POC Wallpaper">
+            <div class="image-caption">Figure: Example ransom image set as desktop wallpaper by the POC.</div>
+        </div>
+        <h2>Red Team Context & Ethics</h2>
+        <div class="warning">
+            <strong>Ethical Use Only:</strong> This POC was developed for red team simulation, awareness, and defense training. It does not encrypt files or cause real harm. Always use such tools responsibly and with proper authorization.
+        </div>
+        <h2>Development Timeline and Context</h2>
+        <div class="tool-structure">
+            <ul>
+                <li><strong>2019:</strong> Developed as part of a red team engagement to demonstrate ransomware impact in a safe, controlled environment.</li>
+                <li>Focus on Windows internals, API usage, and psychological simulation rather than real-world damage.</li>
+                <li>Used C and C++ for low-level Windows API access and resource management.</li>
+            </ul>
+        </div>
+        <h2>Limitations and Next Steps</h2>
+        <div class="tool-structure">
+            <ul>
+                <li>No real file encryption or data destruction—purely a simulation.</li>
+                <li>Focuses on visual/psychological impact, not technical sophistication.</li>
+                <li>Could be extended to simulate ransom notes, network propagation, or more advanced behaviors (for training only).</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html> 

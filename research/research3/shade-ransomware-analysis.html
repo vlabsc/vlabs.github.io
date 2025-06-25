@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Technical Analysis of the Shade Ransomware – Part I</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2em;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 3em;
+            border-bottom: 2px solid #00ff00;
+            padding-bottom: 2em;
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 0.5em;
+            color: #00ff00;
+        }
+        .subtitle {
+            font-size: 1.2em;
+            color: #cccccc;
+            font-style: italic;
+        }
+        .meta {
+            color: #888888;
+            font-size: 0.9em;
+            margin-top: 1em;
+        }
+        h2 {
+            font-size: 2em;
+            color: #00ff00;
+            margin-top: 2em;
+            margin-bottom: 1em;
+            border-left: 4px solid #00ff00;
+            padding-left: 1em;
+        }
+        h3 {
+            font-size: 1.5em;
+            color: #00ff00;
+            margin-top: 1.5em;
+            margin-bottom: 0.8em;
+        }
+        p {
+            font-size: 1.1em;
+            margin-bottom: 1.5em;
+            text-align: justify;
+        }
+        .image-container {
+            text-align: center;
+            margin: 2em 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+        }
+        .image-caption {
+            color: #888888;
+            font-size: 0.9em;
+            margin-top: 0.5em;
+            font-style: italic;
+        }
+        .code-block {
+            background-color: #1a1a1a;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 1em;
+            margin: 1.5em 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.4;
+        }
+        .highlight {
+            background-color: #1a1a1a;
+            border-left: 4px solid #ff6b6b;
+            padding: 1em;
+            margin: 1.5em 0;
+        }
+        .back-link {
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            font-size: 1.1em;
+            padding: 0.8em 1.5em;
+            border: 2px solid white;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            margin-top: 2em;
+        }
+        .back-link:hover {
+            background-color: white;
+            color: black;
+        }
+        ul {
+            margin-bottom: 1.5em;
+        }
+        li {
+            margin-bottom: 0.5em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Technical Analysis of the Shade Ransomware – Part I</h1>
+            <div class="subtitle">A step-by-step reverse engineering walkthrough</div>
+            <div class="meta">
+                Research Date: October 2016 | Author: SV | Reading Time: 15 minutes
+            </div>
+        </div>
+
+        <h2>Introduction</h2>
+        <p>Shade is a malware that belongs to the ransomware type. A ransomware is a malicious program that once run, will modify all important data in the computer. The important data may be of any type depending on the particular system it attacks and may include photos, media files, documents and archives. It modifies all the important data that resides in a hard disk, USB disk and/or in the share drives / folders. The modification is performed using Cryptographic algorithms. So, these type of ransomwares are also called CryptoRansomware.</p>
+        <p>At our Paramount threat research lab (Lakshya Labs), I decided to analyze a sample of Shade Ransomware, as we were getting lot of customer request on removing this infection.</p>
+        <p>The first step I did was to ensure that the samples that I acquired was not corrupted. I loaded the sample in VirusTotal website to ensure that sample was intact.</p>
+        <div class="image-container">
+            <img src="1.png" alt="Figure 1 - The matching hash values between the sample and the uploaded sample">
+            <div class="image-caption">Figure 1 - The matching hash values between the sample and the uploaded sample</div>
+        </div>
+        <div class="image-container">
+            <img src="2.png" alt="Figure 2 - All the antivirus vendors detecting this as a ransomware type">
+            <div class="image-caption">Figure 2 - All the antivirus vendors detecting this as a ransomware type</div>
+        </div>
+        <p>I could also find that all the major anti-virus vendors were detecting this as a ransomware. Once I was sure that the sample was intact, my next step was to run it inside the virtual machine and observe.</p>
+        <p>As most of the malwares doesn't run, if it detects the presence of a Virtual machine, I decided to test go with the following scenario. I loaded my sample zoo machine with this ransomware and some sample files along with it.</p>
+        <p>The below screenshot shows the machine before running the malware. I created three sample files, one image file, one text file and one PDF document.</p>
+        <div class="image-container">
+            <img src="3.png" alt="Figure 3 - The initial shot of the zoo machine">
+            <div class="image-caption">Figure 3 - The initial shot of the zoo machine</div>
+        </div>
+        <p>I observed the machine after running the malware. After few minutes of running, I could see that the desktop wallpaper was changed and also the sample files were modified. The screen shot of the same is below.</p>
+        <div class="image-container">
+            <img src="4.png" alt="Figure 4 - Windows could not open the files">
+            <div class="image-caption">Figure 4 - Windows could not open the files</div>
+        </div>
+        <h2>Static Analysis</h2>
+        <p>I loaded the sample into a debugger tool (in this case the Immunity Debugger) to understand the functionality. But before loading the sample, I wanted to make sure that the file was not packed. I used a tool called PEiD to find whether the PE header was different.</p>
+        <div class="image-container">
+            <img src="5.png" alt="Figure 5 - PEiD shows the presence of Visual Basic runtime">
+            <div class="image-caption">Figure 5 - PEiD shows the presence of Visual Basic runtime</div>
+        </div>
+        <p>PEiD found the absence of any packer, however, I found the presence of a Visual Basic run time. Now it was time to load this in the debugger and analyze. After the sample was loaded into the debugger, I landed up in the EntryPoint, as shown below.</p>
+        <div class="image-container">
+            <img src="5.1.png" alt="Figure 5.1 - EntryPoint in the debugger">
+            <div class="image-caption">Figure 5.1 - EntryPoint in the debugger</div>
+        </div>
+        <p>Then came, the interesting part. After many trial and error attempts and after setting breakpoints at various places, I found that this ransomware creates a new process and that this new process was responsible for encrypting the data. So I decided to debug this new process deeper to understand on how this ransomware worked. Here was where it turned tricky. Debugging this new process was very difficult and the authors of this code has used a technique called process hallowing that made the process of debugging the target a complex process.<sup>[1][6]</sup></p>
+        <h2>Dynamic Analysis</h2>
+        <p>I decided to see how the new process was created initially, before analyzing it.</p>
+        <div class="image-container">
+            <img src="6.png" alt="Figure 6 - Creation of a new sub process.">
+            <div class="image-caption">Figure 6 - Creation of a new sub process.</div>
+        </div>
+        <p>I found that 'CreateProcess()' function was used to create a new process.<sup>[2]</sup> I tried to put a breakpoint at this function to see how it worked.</p>
+        <div class="image-container">
+            <img src="7.png" alt="Figure 7 - Setting breakpoint at CreateProcess">
+            <div class="image-caption">Figure 7 - Setting breakpoint at CreateProcess</div>
+        </div>
+        <p>The first and the sixth arguments were very interesting. The first argument 'lpApplicationName' here held the value 'C:\Lab\ZOO\shade.exe' and the sixth argument 'dwCreationFlags' held the value 'CREATE_SUSPENDED'.<sup>[2]</sup>  After setting the breakpoint just after the successful completion of this function, I could see that a new process was created in suspended state.</p>
+        <div class="image-container">
+            <img src="8.png" alt="Figure 8 - A new shade process is created in suspended state">
+            <div class="image-caption">Figure 8 - A new shade process is created in suspended state</div>
+        </div>
+        <p>As mentioned earlier, attaching to this new process did not yield anything interesting, as this malware was using a technique called process hallowing.<sup>[1][6]</sup> For example, when I tried to attach to this newly created process, I was thrown with a debugger error.</p>
+        <div class="image-container">
+            <img src="9.png" alt="Figure 9  - Debugger error while attaching to the new process">
+            <div class="image-caption">Figure 9  - Debugger error while attaching to the new process</div>
+        </div>
+        <p>The debugger was unable to attach to this newly created process as it was unable to understand the PE (Portable Executable) executable file format. I decided to locate the PE header. After seeing the first area within the '0x00400000' memory region, I could locate the MS DOS and PE headers.</p>
+        <div class="image-container">
+            <img src="10.png" alt="Figure 10 - The MS DOS and PE headers">
+            <div class="image-caption">Figure 10 - The MS DOS and PE headers</div>
+        </div>
+        <p>After going further down within the memory area, I was able to locate the PE header and the address of the entry point as well.</p>
+        <div class="image-container">
+            <img src="11.png" alt="Figure 11 - Presence of PE header and information about the entry point">
+            <div class="image-caption">Figure 11 - Presence of PE header and information about the entry point</div>
+        </div>
+        <p>So finally, I was able to locate the 'AddressOfEntryPoint' for the newly created process. Basically, the 'AddressOfEntryPoint' held the address of the first instruction that gets executed when the process starts running. So, the obvious next step was to set a breakpoint at that address and catch the execution. Unfortunately, it did not work. When a process was put in suspended state, it is not possible to debug it, because the debugger won't be able to see the process at all.</p>
+        <div class="image-container">
+            <img src="12.png" alt="Figure 12 - The debugger is not able to locate the newly created process">
+            <div class="image-caption">Figure 12 - The debugger is not able to locate the newly created process</div>
+        </div>
+        <p>I decided to follow a different approach. I decided to find out the API that was sending the signal to the suspended process to resume. I decided to put a break point on 'LdrGetProcedureAddress' function and intercept the API calls. After analyzing many calls, I understood that just before the newly created process gets executed, the flowing API flows were very important for analysis:'NtAllocateVirtualMemory()' -> 'CreateProcessW()' -> 'NtUnmapViewOfSection()' -> 'NtWriteVirtualMemory()' -> 'NtGetContextThread()' -> 'NtSetContextThread()' -> 'NtResumeThread()' -> 'GetExitCodeProcess()'<sup>[3][2][4][5]</sup></p>
+        <div class="image-container">
+            <img src="13.png" alt="Figure 13 - 'NtAllocateVirtualMemory()' getting called.">
+            <div class="image-caption">Figure 13 - 'NtAllocateVirtualMemory()' getting called.</div>
+        </div>
+        <div class="image-container">
+            <img src="14.png" alt="Figure 14 - 'CreateProcessW()' getting called.">
+            <div class="image-caption">Figure 14 - 'CreateProcessW()' getting called.</div>
+        </div>
+        <div class="image-container">
+            <img src="15.png" alt="Figure 15 - 'NtUnmapViewOfSection()' getting called.">
+            <div class="image-caption">Figure 15 - 'NtUnmapViewOfSection()' getting called.</div>
+        </div>
+        <div class="image-container">
+            <img src="16.png" alt="Figure 16 - 'NtWriteVirtualMemory()' getting called.">
+            <div class="image-caption">Figure 16 - 'NtWriteVirtualMemory()' getting called.</div>
+        </div>
+        <div class="image-container">
+            <img src="17.png" alt="Figure 17 - 'NtGetContextThread()' getting called.">
+            <div class="image-caption">Figure 17 - 'NtGetContextThread()' getting called.</div>
+        </div>
+        <div class="image-container">
+            <img src="18.png" alt="Figure 18 - 'NtSetContextThread()' getting called.">
+            <div class="image-caption">Figure 18 - 'NtSetContextThread()' getting called.</div>
+        </div>
+        <div class="image-container">
+            <img src="19.png" alt="Figure 19 - 'NtResumeThread()' getting called.">
+            <div class="image-caption">Figure 19 - 'NtResumeThread()' getting called.</div>
+        </div>
+        <div class="image-container">
+            <img src="20.png" alt="Figure 20 -'GetExitProcess()' getting called.">
+            <div class="image-caption">Figure 20 -'GetExitProcess()' getting called.</div>
+        </div>
+        <div class="image-container">
+            <img src="21.png" alt="Figure 21 - Finally the process ends.">
+            <div class="image-caption">Figure 21 - Finally the process ends.</div>
+        </div>
+        <h2>Process Hallowing and Debugging</h2>
+        <p>Overall, I understood that the job of the first program is to perform process hallowing and execute the newly created process or target process. So by now my aim was to analyze the newly created or the target process.</p>
+        <p>I wanted to also see what is happening in 'NtAllocateVirtualMemory()' function call. According to MSDN, the 'NtAllocateVirtualMemory()' function call has the following prototype:</p>
+        <div class="code-block">
+NTSTATUS ZwAllocateVirtualMemory(
+  _In_    HANDLE    ProcessHandle,
+  _Inout_ PVOID     *BaseAddress,
+  _In_    ULONG_PTR ZeroBits,
+  _Inout_ PSIZE_T   RegionSize,
+  _In_    ULONG     AllocationType,
+  _In_    ULONG     Protect
+);
+        </div>
+        <p>I tried to map the values with the following screenshot.</p>
+        <div class="image-container">
+            <img src="22.png" alt="Figure 22 - NtAllocateVirtualMemory() call">
+            <div class="image-caption">Figure 22 - NtAllocateVirtualMemory() call</div>
+        </div>
+        <p>The first value that was being pushed was 0x40 and that corresponded to 'Protect'. 0x40 holds the value 'PAGE_EXECUTE_READWRITE'. Clearly, this malware was making a region where it could read, write and as well as execute.<sup>[3]</sup> The second value 0x1000 held the value 'MEM_COMMIT'.  I went further down to the 'CreateProcessW()' to see what was happening.</p>
+        <div class="image-container">
+            <img src="23.png" alt="Figure 23 - CreateProcessW() call">
+            <div class="image-caption">Figure 23 - CreateProcessW() call</div>
+        </div>
+        <p>I could clearly see that a new process was being created with 'CREATE_SUSPENDED' flag set.<sup>[2]</sup> I jumped into 'NtWriteVirtualMemory()' API call.<sup>[4]</sup> As per the undocumented references, 'NtWriteVirtualMemory()'</p>
+        <div class="code-block">
+NtWriteVirtualMemory(
+  IN HANDLE               ProcessHandle,
+  IN PVOID                BaseAddress,
+  IN PVOID                Buffer,
+  IN ULONG                NumberOfBytesToWrite,
+  OUT PULONG              NumberOfBytesWritten OPTIONAL 
+);
+        </div>
+        <div class="image-container">
+            <img src="24.png" alt="Figure 24 - NtWriteVirtualMemory() call">
+            <div class="image-caption">Figure 24 - NtWriteVirtualMemory() call</div>
+        </div>
+        <p>The 'Buffer' variable was an important one in the 'NtWriteVirtualMemory()' function and that pointed to the address where the possible new process code was present.<sup>[4]</sup> I could see that in the above screen shot. I could also see the presence of DOS and PE header in the 'Buffer' region. So, this was going in the direction as I was expecting.</p>
+        <p>My ultimate objective was to debug the newly created process. While through the earlier analysis, I found that 'NtResumeThread()' function is the one that is resuming the newly created process to run from the 'SUSPENDED' state.<sup>[5]</sup> Before that I had found that the 'NtSetContextThread()' function sets the required fields for the thread.<sup>[5]</sup> The 'NtSetContextThread()' function uses a CONTEXT structure that has the crucial information on the newly created process.</p>
+        <div class="code-block">
+typedef struct _CONTEXT
+{
+     ULONG ContextFlags;
+     ULONG Dr0;
+     ULONG Dr1;
+     ULONG Dr2;
+     ULONG Dr3;
+     ULONG Dr6;
+     ULONG Dr7;
+     FLOATING_SAVE_AREA FloatSave;
+     ULONG SegGs;
+     ULONG SegFs;
+     ULONG SegEs;
+     ULONG SegDs;
+     ULONG Edi;
+     ULONG Esi;
+     ULONG Ebx;
+     ULONG Edx;
+     ULONG Ecx;
+     ULONG Eax;
+     ULONG Ebp;
+     ULONG Eip;
+     ULONG SegCs;
+     ULONG EFlags;
+     ULONG Esp;
+     ULONG SegSs;
+     UCHAR ExtendedRegisters[512];
+} CONTEXT, *PCONTEXT;
+        </div>
+        <p>The offset of the EAX register was at 0xb0 from the beginning of the structure. The EAX register holds the address of the entry point with respect the SUSPENDED process. So the beginning of the process space (memory address) plus the value 0xb0 will hold the instruction that gets executed first when 'NtResumeThread()' function is called. I patched the memory address that this offset was pointing to.</p>
+        <div class="image-container">
+            <img src="25.png" alt="Figure 25 - The CONTEXT structure ">
+            <div class="image-caption">Figure 25 - The CONTEXT structure </div>
+        </div>
+        <p>From the above picture I could see that the CONTEXT structure starts at the address 0x003E009C. So, the address 0x003E009C plus the 0Xb0 yields 0x3E014C. I wanted to see what is there at the address 0x3E014C.</p>
+        <div class="image-container">
+            <img src="26.png" alt="Figure 26 - The EntryPoint address within the context structure">
+            <div class="image-caption">Figure 26 - The EntryPoint address within the context structure</div>
+        </div>
+        <p>The value at the 0x3E014C address was 0x004BFFC0. I know that in most cases the PE binaries are loaded into the address 0x00400000. So, 0x004BFFC0 minus the 0x00400000 gives the control over the first instruction (i.e. at offset 0xBFFC0). I patched the instruction at 0x004BFFC0. I patched the memory region using the ProcessHacker tool.</p>
+        <div class="image-container">
+            <img src="27.png" alt="Figure 27 - The first instruction at the EntryPoint is 60 (PUSHAD)">
+            <div class="image-caption">Figure 27 - The first instruction at the EntryPoint is 60 (PUSHAD)</div>
+        </div>
+        <p>The HEX value at 0Xbffc0 is 60 and it corresponded to PUSHAD instruction. I modified (patch) this to CC (debug) instruction.<sup>[6]</sup> Basically, the 60 and CC are called OPCODES. OpCodes are nothing but instruction codes in the Intel Microprocessor language.</p>
+        <div class="image-container">
+            <img src="28.png" alt="Figure 28 - Patching the instruction to CC (debug) instruction">
+            <div class="image-caption">Figure 28 - Patching the instruction to CC (debug) instruction</div>
+        </div>
+        <p>Once modified, I changed the memory and wrote it. Since the 0xcc belongs to breakpoint opcode, I set the Just-In-Time debugger.<sup>[6]</sup> I used the OllyDebugger as the JIT as show below.</p>
+        <div class="image-container">
+            <img src="29.png" alt="Figure 29 - Making OllyDbg to act as JIT debugger">
+            <div class="image-caption">Figure 29 - Making OllyDbg to act as JIT debugger</div>
+        </div>
+        <p>Once this was done, I allowed the 'NtResumeThread()' function to continue.<sup>[5]</sup> I could see that the modified thread fired an exception and was waiting for me to debug!</p>
+        <div class="image-container">
+            <img src="30.png" alt="Figure 30 - The newly created process triggers the debug exception">
+            <div class="image-caption">Figure 30 - The newly created process triggers the debug exception</div>
+        </div>
+        <p>I selected the Debug the program and there you go, I had hunted down the newly created process.</p>
+        <div class="image-container">
+            <img src="31.png" alt="Figure 31 - Landing at the patched memory location of the newly created process">
+            <div class="image-caption">Figure 31 - Landing at the patched memory location of the newly created process</div>
+        </div>
+        <p>Now I had complete control of the main process that was playing the role of encrypting the files. Since, I had full control of this process, it was easy for me to look into on the internal workings of this ransomware.</p>
+        <p><em>We will have the in-depth analysis of this in our next blog.</em></p>
+        <section id="malware-techniques">
+            <h2>Techniques used by Malware</h2>
+            <ol>
+                <li><strong>Process Hollowing:</strong> The malware creates a new process in a suspended state and replaces its memory with malicious code, making detection and debugging difficult. <br><em>— This technique is used to evade detection and complicate analysis by running malicious code in the context of a legitimate process.</em></li>
+                <li><strong>Use of CreateProcess with CREATE_SUSPENDED:</strong> The malware uses the CreateProcess API with the CREATE_SUSPENDED flag to create a process that does not immediately execute, allowing it to manipulate the process memory before execution. <br><em>— This technique is used to gain control over the process before it starts running, enabling memory manipulation and code injection.</em></li>
+                <li><strong>NtAllocateVirtualMemory and PAGE_EXECUTE_READWRITE:</strong> The malware allocates memory with read, write, and execute permissions, preparing space for the injected code. <br><em>— This technique is used to ensure the injected code can be executed after being written to memory.</em></li>
+                <li><strong>NtWriteVirtualMemory:</strong> The malware writes its payload into the allocated memory of the target process. <br><em>— This technique is used to inject malicious code into the target process for execution.</em></li>
+                <li><strong>NtSetContextThread and NtResumeThread:</strong> The malware sets the thread context and resumes the suspended process, causing the injected code to execute. <br><em>— This technique is used to transfer execution to the injected code in the target process.</em></li>
+                <li><strong>Anti-Debugging/Obfuscation:</strong> The malware complicates debugging by using process hollowing and by patching memory with breakpoints to trigger exceptions and control execution flow. <br><em>— This technique is used to hinder analysis and make reverse engineering more challenging.</em></li>
+            </ol>
+        </section>
+
+        <section id="conclusion">
+            <h2>Conclusion</h2>
+            <div class="conclusion">
+                <h3>Summary</h3>
+                <p>This analysis demonstrates how Shade ransomware uses advanced process hollowing and memory manipulation techniques to evade detection and complicate analysis. By creating a new process in a suspended state, injecting its payload, and then resuming execution, the malware is able to encrypt files and carry out its malicious objectives while making reverse engineering and removal more difficult. The use of anti-debugging tricks and memory patching further increases the challenge for analysts. Understanding these techniques is crucial for developing effective detection and remediation strategies.</p>
+            </div>
+        </section>
+
+        <a href="../../index.html" class="back-link">← Back to Home</a>
+    </div>
+</body>
+</html> 

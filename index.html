@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Blog</title>
+    <title>VlabsC - Space for Tools, Experiments, and Ideas</title>
     <style>
         body {
             background-color: black;
@@ -64,35 +64,221 @@
             border: 2px solid #00ff00;
             border-radius: 10px;
         }
+
+        .label {
+            display: inline-block;
+            background: #222;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            border-radius: 4px;
+            font-size: 0.8em;
+            padding: 0.1em 0.5em;
+            margin-left: 0.5em;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .label.active, .label:active {
+            background: #00ff00;
+            color: black;
+        }
+        .show-all-btn {
+            display: inline-block;
+            margin: 1em 0 2em 0;
+            padding: 0.3em 1.2em;
+            background: #111;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .show-all-btn:hover {
+            background: #00ff00;
+            color: black;
+        }
+        .label.ransomware { color: #ff6b6b; border-color: #ff6b6b; }
+        .label.threat { color: #00bfff; border-color: #00bfff; }
+        .label.ai { color: #ffd700; border-color: #ffd700; }
+        .label.rust { color: #ff9900; border-color: #ff9900; }
+        .label.assembly { color: #b266ff; border-color: #b266ff; }
+        .label.reverse { color: #00bfff; border-color: #00bfff; }
+        .label.c { color: #ff6600; border-color: #ff6600; }
+        .label.fuzzing { color: #ff00ff; border-color: #ff00ff; }
+        .label.windows { color: #00ffff; border-color: #00ffff; }
+        .label.prompt { color: #ffb347; border-color: #ffb347; }
+        .label.retro { color: #cccccc; border-color: #cccccc; }
+        .label.history { color: #bada55; border-color: #bada55; }
+        .label.book { color: #a020f0; border-color: #a020f0; }
+        .label.journal { color: #00ced1; border-color: #00ced1; }
+        .label.network { color: #00fa9a; border-color: #00fa9a; }
+        .label.year { color: #cccccc; border-color: #888888; }
+        .label.exploits { color: #ffae42; border-color: #ffae42; }
+
+        .site-title {
+            text-align: center;
+            margin-bottom: 2em;
+            margin-top: 1em;
+        }
+        .vlabsc-main {
+            display: block;
+            font-size: 2.8em;
+            font-weight: bold;
+            color: #00ff00;
+            letter-spacing: 0.05em;
+            text-shadow: 0 0 8px #00ff00, 0 0 2px #222;
+            font-family: 'Consolas', 'Fira Mono', 'Menlo', 'Monaco', monospace;
+        }
+        .vlabsc-sub {
+            display: block;
+            font-size: 1.2em;
+            color: #cccccc;
+            margin-top: 0.5em;
+            font-family: 'Arial', sans-serif;
+            font-style: italic;
+            letter-spacing: 0.01em;
+        }
     </style>
+    <script>
+    function filterByLabel(label) {
+        document.querySelectorAll('.label').forEach(function(lab) {
+            lab.classList.toggle('active', lab.textContent.trim() === label);
+        });
+        document.querySelectorAll('li[data-labels]').forEach(function(li) {
+            if (li.getAttribute('data-labels').split(' ').includes(label.toLowerCase())) {
+                li.style.display = '';
+            } else {
+                li.style.display = 'none';
+            }
+        });
+    }
+    function showAll() {
+        document.querySelectorAll('.label').forEach(function(lab) {
+            lab.classList.remove('active');
+        });
+        document.querySelectorAll('li[data-labels]').forEach(function(li) {
+            li.style.display = '';
+        });
+    }
+    </script>
 </head>
 <body>
     <div class="container">
-        <h2>VlabsC - Space for Tools, Experiments, and Ideas</h2>
+        <h1>VlabsC - Space for Tools, Experiments, and Thoughts</h1>
+        <button class="show-all-btn" onclick="showAll()">Show All</button>
         <h3>Research</h3>
         <ul>
-            <li><a href="research/research1/silent-sabotage-what-happens-when-your-llm-is-backdoored-08-06-2025.html">Silent Sabotage: Backdooring LLMs</a></li>
+            <li data-labels="ai threat">
+                <a href="research/research1/silent-sabotage-what-happens-when-your-llm-is-backdoored-08-06-2025.html">Silent Sabotage: Backdooring LLMs</a>
+                <span class="label ai" onclick="filterByLabel('ai')">AI Security</span>
+                <span class="label threat" onclick="filterByLabel('threat')">Threat Analysis</span>
+            </li>
+            <li data-labels="threat ransomware">
+                <a href="research/research2/analysing-emotet-and-trickbot-together_15_06_2025.html">Analysing Emotet and Trickbot Together: A Comprehensive Threat Research Analysis</a>
+                <span class="label threat" onclick="filterByLabel('threat')">Threat Analysis</span>
+                <span class="label ransomware" onclick="filterByLabel('ransomware')">Ransomware</span>
+            </li>
+            <li data-labels="ransomware threat">
+                <a href="research/research3/shade-ransomware-analysis.html">Technical Analysis of the Shade Ransomware – Part I</a>
+                <span class="label ransomware" onclick="filterByLabel('ransomware')">Ransomware</span>
+                <span class="label threat" onclick="filterByLabel('threat')">Threat Analysis</span>
+            </li>
+            <li data-labels="threat malware polymorphic retro">
+                <a href="research/research4/onehalf-polymorphic-virus-analysis.html">My Journey into Cybersecurity: The OneHalf Polymorphic Virus and Early Days of Hacking</a>
+                <span class="label threat" onclick="filterByLabel('threat')">Threat Analysis</span>
+                <span class="label malware" onclick="filterByLabel('malware')">Malware</span>
+                <span class="label polymorphic" onclick="filterByLabel('polymorphic')">Polymorphic</span>
+                <span class="label retro" onclick="filterByLabel('retro')">Retro</span>
+            </li>
         </ul>
 
         <h3>Tools</h3>
         <ul>
-            <li><a href="tools/tool1/pe-header-parser-tool.html">PE Header Parser: A FASM-Based Tool for 32-bit and 64-bit PE Files</a></li>
-            <li><a href="tools/tool2/tool2_file_in_hex.html">File-in-Hex: A FASM-Based Hex Viewer for Binary Analysis</a></li>
-            <li><a href="tools/tool3/reconwin-threat-hunting-tool.html">ReconWin: An Open Source Threat Hunting Tool</a></li>
-            <li><a href="tools/tool4/cfuzz-custom-fuzzer-tool.html">CFuzz: A Custom Fuzzer Written in C for Windows Application Security Testing</a></li>
+            <li data-labels="assembly reverse">
+                <a href="tools/tool1/pe-header-parser-tool.html">PE Header Parser: A FASM-Based Tool for 32-bit and 64-bit PE Files</a>
+                <span class="label assembly" onclick="filterByLabel('assembly')">Assembly</span>
+                <span class="label reverse" onclick="filterByLabel('reverse')">Reverse Engineering</span>
+            </li>
+            <li data-labels="assembly reverse">
+                <a href="tools/tool2/tool2_file_in_hex.html">File-in-Hex: A FASM-Based Hex Viewer for Binary Analysis</a>
+                <span class="label assembly" onclick="filterByLabel('assembly')">Assembly</span>
+                <span class="label reverse" onclick="filterByLabel('reverse')">Reverse Engineering</span>
+            </li>
+            <li data-labels="rust threat">
+                <a href="tools/tool3/reconwin-threat-hunting-tool.html">ReconWin: An Open Source Threat Hunting Tool</a>
+                <span class="label rust" onclick="filterByLabel('rust')">Rust</span>
+                <span class="label threat" onclick="filterByLabel('threat')">Threat Hunting</span>
+            </li>
+            <li data-labels="c fuzzing windows">
+                <a href="tools/tool4/cfuzz-custom-fuzzer-tool.html">CFuzz: A Custom Fuzzer Written in C for Windows Application Security Testing</a>
+                <span class="label c" onclick="filterByLabel('c')">C</span>
+                <span class="label fuzzing" onclick="filterByLabel('fuzzing')">Fuzzing</span>
+                <span class="label windows" onclick="filterByLabel('windows')">Windows</span>
+            </li>
+            <li data-labels="assembly reverse">
+                <a href="tools/tool5/tool1/pe-header-parser-tool.html">PE Header Parser Tool (Assembly, C)</a>
+                <span class="label assembly" onclick="filterByLabel('assembly')">Assembly</span>
+                <span class="label reverse" onclick="filterByLabel('reverse')">Reverse Engineering</span>
+            </li>
+            <li data-labels="assembly reverse disassembler retro">
+                <a href="tools/tool5/disassembler-tool.html">Mini Disassembler in C: Learning PE and x86 Internals (2013)</a>
+                <span class="label assembly" onclick="filterByLabel('assembly')">Assembly</span>
+                <span class="label reverse" onclick="filterByLabel('reverse')">Reverse Engineering</span>
+                <span class="label disassembler" onclick="filterByLabel('disassembler')">Disassembler</span>
+                <span class="label retro" onclick="filterByLabel('retro')">Retro</span>
+            </li>
+            <li data-labels="redteam ransomware simulation windows">
+                <a href="tools/tool6/poc-Ransomware/poc-ransomware-poc.html">POC Ransomware (Red Team Simulation, 2019)</a>
+                <span class="label redteam" onclick="filterByLabel('redteam')">Red Team</span>
+                <span class="label ransomware" onclick="filterByLabel('ransomware')">Ransomware</span>
+                <span class="label simulation" onclick="filterByLabel('simulation')">Simulation</span>
+                <span class="label windows" onclick="filterByLabel('windows')">Windows</span>
+            </li>
+            <li data-labels="rust threat mitre apt cli">
+                <a href="tools/tool7/aptmap.html">aptmap: Mapping APT Groups to MITRE ATT&CK Techniques</a>
+                <span class="label rust" onclick="filterByLabel('rust')">Rust</span>
+                <span class="label threat" onclick="filterByLabel('threat')">Threat Intelligence</span>
+                <span class="label mitre" onclick="filterByLabel('mitre')">MITRE ATT&CK</span>
+                <span class="label apt" onclick="filterByLabel('apt')">APT</span>
+                <span class="label cli" onclick="filterByLabel('cli')">CLI Tool</span>
+            </li>
         </ul>
 
         <h3>Blogs</h3>
         <ul>
-            <li><a href="blog/story2/gandalf_how_i_solved_18_06_2025.html">Gandalf AI Challenge: A Prompt Adventure</a></li>
-            <li><a href="blog/story3/retro-computing-series-before-defender-a-look-back-at-msav-and-cpav_21_06_2025.html">CPAV & 90s Anti-Virus Tools: A Nostalgic Dive</a></li>
+            <li data-labels="ai prompt">
+                <a href="blog/story2/gandalf_how_i_solved_18_06_2025.html">Gandalf AI Challenge: A Prompt Adventure</a>
+                <span class="label ai" onclick="filterByLabel('ai')">AI</span>
+                <span class="label prompt" onclick="filterByLabel('prompt')">Prompt Engineering</span>
+            </li>
+            <li data-labels="retro history threat">
+                <a href="blog/story3/retro-computing-series-before-defender-a-look-back-at-msav-and-cpav_21_06_2025.html">CPAV & 90s Anti-Virus Tools: A Nostalgic Dive</a>
+                <span class="label retro" onclick="filterByLabel('retro')">Retro</span>
+                <span class="label history" onclick="filterByLabel('history')">History</span>
+                <span class="label threat" onclick="filterByLabel('anti-virus')">Anti-Virus</span>
+            </li>
         </ul>
 
         <h3>Books / Journals</h3>
         <ul>
-            <li><a href="#">Book: Historical Analysis of Popular Cybersecurity Exploit Kits</a></li>
-            <li><a href="#">IEEE: Evaluating shallow and deep networks for ransomware detection and classification</a></li>
-            <li><a href="#">Book: Network Anomaly Detection Handbook: A Practical Guide for Securing Networks Using AI-Powered Techniques - Kindle Edition</a></li>
+            <li data-labels="book threat exploits">
+                <a href="#">Book: Historical Analysis of Popular Cybersecurity Exploit Kits</a>
+                <span class="label book" onclick="filterByLabel('book')">Book</span>
+                <span class="label threat" onclick="filterByLabel('cybersecurity')">Cybersecurity</span>
+                <span class="label exploits" onclick="filterByLabel('exploits')">Exploits</span>
+            </li>
+            <li data-labels="journal ai ransomware">
+                <a href="#">IEEE: Evaluating shallow and deep networks for ransomware detection and classification</a>
+                <span class="label journal" onclick="filterByLabel('journal')">Journal</span>
+                <span class="label ai" onclick="filterByLabel('ai')">AI Security</span>
+                <span class="label ransomware" onclick="filterByLabel('ransomware')">Ransomware</span>
+            </li>
+            <li data-labels="book ai network">
+                <a href="#">Book: Network Anomaly Detection Handbook: A Practical Guide for Securing Networks Using AI-Powered Techniques - Kindle Edition</a>
+                <span class="label book" onclick="filterByLabel('book')">Book</span>
+                <span class="label ai" onclick="filterByLabel('ai')">AI Security</span>
+                <span class="label network" onclick="filterByLabel('network')">Networking</span>
+            </li>
         </ul>
         
         

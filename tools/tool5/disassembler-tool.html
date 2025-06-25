@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Disassembler in C: Learning PE and x86 Internals (2013)</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #000;
+            color: white;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #111;
+            padding: 30px;
+            border-radius: 10px;
+            border: 2px solid #00ff00;
+        }
+        h1 {
+            color: #00ff00;
+            text-align: center;
+            border-bottom: 2px solid #00ff00;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #00ff00;
+            border-left: 4px solid #00ff00;
+            padding-left: 15px;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #00ff00;
+            margin-top: 25px;
+        }
+        h4 {
+            color: #00ff00;
+            margin-top: 20px;
+        }
+        p {
+            color: white;
+            margin-bottom: 1.5em;
+            text-align: justify;
+        }
+        ul, ol {
+            color: white;
+        }
+        li {
+            color: white;
+            margin-bottom: 0.5em;
+        }
+        .code-block {
+            background-color: #1a1a1a;
+            border: 1px solid #00ff00;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            font-style: italic;
+        }
+        .log-output {
+            background-color: #0a0a0a;
+            border: 1px solid #00ff00;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        .highlight {
+            background-color: #2a2a2a;
+            padding: 10px;
+            border-left: 4px solid #00ff00;
+            margin: 15px 0;
+        }
+        .success {
+            background-color: #1a2a1a;
+            border-left: 4px solid #00ff00;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        .warning {
+            background-color: #2a2a1a;
+            border-left: 4px solid #ffff00;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        .nav-links {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            padding: 5px 10px;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+        }
+        .nav-links a:hover {
+            background-color: #00ff00;
+            color: #000;
+        }
+        .tool-structure {
+            background-color: #1a1a1a;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .image-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+        }
+        .image-caption {
+            margin-top: 5px;
+            font-style: italic;
+            color: #888888;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Mini Disassembler in C: Learning PE and x86 Internals (2013)</h1>
+        <div class="nav-links">
+            <a href="../../index.html">Back</a>
+        </div>
+        <div class="highlight">
+            <strong>Disassembler v0.1</strong> - A personal project from 2013 to understand Windows PE files and x86 assembly by writing a basic disassembler in C.
+        </div>
+        <h2>Overview</h2>
+        <p>This project was my first attempt at writing a mini disassembler for Windows executables (PE files) in C. The goal was to learn how PE headers work, how code sections are structured, and how to decode x86 instructions at a basic level. The tool parses PE headers, analyzes section tables, walks the import table, and attempts to disassemble the code section byte by byte.</p>
+        <h3>Main Features</h3>
+        <div class="tool-structure">
+            <ul>
+                <li><strong>PE Header Parsing:</strong> Reads and interprets IMAGE_DOS_HEADER and IMAGE_NT_HEADERS structures.</li>
+                <li><strong>Section Table Analysis:</strong> Lists all sections (.text, .data, .rdata, etc.) and their properties.</li>
+                <li><strong>Import Table Parsing:</strong> Enumerates imported DLLs and functions.</li>
+                <li><strong>Basic x86 Disassembly:</strong> Walks the code section and decodes instructions using custom logic for MODRM/SIB bytes.</li>
+            </ul>
+        </div>
+        <h3>Sample Output</h3>
+        <div class="log-output">
+analysing the file: goat1.2.exe
+
+------------------- IMAGE_DOS_HEADER PROBE START ------------------- 
+The IMAGE_DOS_HEADER begins at file offset: 0x00000000
+DOS Signature: 0x5A4D   -> [DOS Signature 'MZ']
+lfanew: 0x00000100   -> [pointer to the PE header]
+e_cs: 0x00   -> [code segment value in DOS mode]
+e_ip: 0x00   -> [instruction pointer value in DOS mode]
+e_ss: 0x00   -> [stack segment value in DOS mode]
+e_sp: 0xB8   -> [stack pointer value in DOS mode]
+------------------- IMAGE_DOS_HEADER PROBE END ------------------- 
+
+------------------- IMAGE_NT_HEADERS PROBE START ------------------- 
+The IMAGE_NT_HEADER begins at file offset: 0x00000100
+Signature: 0x00004550   -> [PE Signature 'PE']
+  --- IMAGE_NT_HEADERS -> FileHeader PROBE START --- 
+   The FileHeader begins at: 0x00000104
+   FileHeader.Machine: 0x014C -> x86   -> [supported machine architecture] 
+   FileHeader.Number of Sections: 0x0004
+   FileHeader.PointerToSymbolTable: 0x00000000
+   FileHeader.NumberOfSymbols: 0x00000000
+   FileHeader.SizeOfOptionalHeader: 0x00E0
+   FileHeader.Characteristics: 0x010F   -> [IMAGE_FILE_EXECUTABLE_IMAGE = EXE File]
+  --- IMAGE_NT_HEADERS -> FileHeader PROBE END  --- 
+  --- IMAGE_NT_HEADERS -> IMAGE_OPTIONAL_HEADER PROBE START  --- 
+   The IMAGE_OPTIONAL_HEADER begins at: 0x00000118
+   ImageBase: 0x00400000
+   Base of Code: 0x00001000, Base of Data: 0x00050000
+   AddressOfEntryPoint: 0x0004777F
+   SizeOfCode: 0x0004F000
+   Walking through the DataDirectory table ...
+   DataDirectory[0].VirtualAddress: 0x00000000 (Export table)
+   DataDirectory[1].VirtualAddress: 0x00067CC8 (Import table)   -> [ Location of the Import Table within the memory ]
+   DataDirectory[2].VirtualAddress: 0x00072000 (Resource table)
+   DataDirectory[3].VirtualAddress: 0x00000000 (Exception table)
+   DataDirectory[4].VirtualAddress: 0x00000000 (Certificate table)
+   DataDirectory[5].VirtualAddress: 0x00000000 (Base relocation table)
+   DataDirectory[6].VirtualAddress: 0x00000000 (Debugging information starting)
+   DataDirectory[7].VirtualAddress: 0x00000000 (Architecture-specific data)
+   DataDirectory[8].VirtualAddress: 0x00000000 (Global pointer register relative virtual address)
+   DataDirectory[9].VirtualAddress: 0x00000000 (Thread local storage (TLS) table)
+   DataDirectory[10].VirtualAddress: 0x00067C68 (Load configuration table)
+   DataDirectory[11].VirtualAddress: 0x00000000 (Bound import table)
+   DataDirectory[12].VirtualAddress: 0x00050000 (Import address table)
+   DataDirectory[13].VirtualAddress: 0x00000000 (Delay import descriptor)
+   DataDirectory[14].VirtualAddress: 0x00000000 (The CLR header)
+   DataDirectory[15].VirtualAddress: 0x00000000 (Reserved)
+  --- IMAGE_NT_HEADERS -> IMAGE_OPTIONAL_HEADER PROBE END  --- 
+------------------- IMAGE_NT_HEADERS PROBE END ------------------- 
+
+------------------- Section table PROBE BEGIN ------------------- 
+Section name: .text  -  at file offset: 0x1F8
+ VirtualAddress: 0x00001000,  PointerToRawData: 0x00001000
+ VirtualSize: 0x0004E4D1,  SizeOfRawData: 0x0004F000
+ Charactersitics: IMAGE_SCN_CNT_CODE  IMAGE_SCN_MEM_READ  IMAGE_SCN_MEM_EXECUTE  
+ [ This is a code section ! ]
+Section name: .rdata  -  at file offset: 0x220
+ VirtualAddress: 0x00050000,  PointerToRawData: 0x00050000
+ VirtualSize: 0x00019536,  SizeOfRawData: 0x0001A000
+ Charactersitics: IMAGE_SCN_MEM_READ  IMAGE_SCN_CNT_INITIALIZED_DATA 
+ [ This section .rdata contains Import data ] 
+Section name: .data  -  at file offset: 0x248
+ VirtualAddress: 0x0006A000,  PointerToRawData: 0x0006A000
+ VirtualSize: 0x00007064,  SizeOfRawData: 0x00001000
+ Charactersitics: IMAGE_SCN_MEM_READ  IMAGE_SCN_MEM_WRITE  IMAGE_SCN_CNT_INITIALIZED_DATA 
+ [ This is a data section ! ]
+Section name: .rsrc  -  at file offset: 0x270
+ VirtualAddress: 0x00072000,  PointerToRawData: 0x0006B000
+ VirtualSize: 0x00003AB0,  SizeOfRawData: 0x00004000
+ Charactersitics: IMAGE_SCN_MEM_READ  IMAGE_SCN_CNT_INITIALIZED_DATA 
+------------------- Section table PROBE ENDDDDDDDDDDDDDDDDDDDDDDD ------------------- 
+        </div>
+        <h3>Sample Disassembly Output</h3>
+        <div class="log-output">
++------------------- OPCODE analysis START (first 323584 bytes from beginning of code base)-------------------
++00401000:  56:			PUSH ESI
++00401001:  8D 34 40:		LEA ESI, [EAX+EAX*2]
++00401004:  C1 E6 02:		SHL ESI, 02h
++00401007:  8B 8E 44ae4600:	MOV ECX, [ESI+0046AE44h]
++0040100D:  8D 86 48ae4600:	LEA EAX, [ESI+0046AE48h]
++00401013:  3B 08:              CMP ECX, [EAX] 
++00401015:  57:			PUSH EDI
++00401016:  7C 1A:		JL 00401032h 
++00401018:  83 C1 20:		ADD ECX, 20
++0040101B:  6A 08:		PUSH 08h 
++0040101D:  51:			PUSH ECX
++0040101E:  8D BE 40ae4600:	LEA EDI, [ESI+0046AE40h]
++00401024:  FF 37:		PUSH [EDI] 
++00401026:  89 08:		MOV [EAX], ECX 
++00401028:  E8 078f0000:	CALL 00409F34
++0040102D:  83 C4 0C:		ADD ESP, 0C
++00401030:  89 07:		MOV [EDI], EAX 
++// ... (more lines in output.txt)
+        </div>
+        <h2>Code Structure</h2>
+        <div class="tool-structure">
+            <ul>
+                <li><code>main.c</code> - Entry point, handles file selection and scan loop.</li>
+                <li><code>peheader.c</code> - Parses PE headers, section tables, and import tables.</li>
+                <li><code>opcode_walk.c</code> - Walks through the code section and decodes instructions.</li>
+                <li><code>opcode_decode.c</code> - Contains logic for decoding x86 opcodes, MODRM, and SIB bytes.</li>
+                <li><code>modrm_table.txt</code> - Lookup table for MODRM byte decoding.</li>
+            </ul>
+        </div>
+        <h2>How the Disassembler Works: File and Logic Flow</h2>
+        <div class="tool-structure">
+            <ul>
+                <li><strong>main.c:</strong> This is the entry point of the tool. It sets up the environment, selects the file to scan, and calls the main scanning and analysis routines. It manages memory allocation for header structures and coordinates the overall process.</li>
+                <li><strong>peheader.c:</strong> Responsible for parsing the Windows PE (Portable Executable) headers. It reads the IMAGE_DOS_HEADER, IMAGE_NT_HEADERS, section tables, and import tables. This module extracts all the metadata needed to locate code and data sections for further analysis.</li>
+                <li><strong>opcode_walk.c:</strong> Implements the main disassembly loop. It walks through the code section byte by byte, identifies instruction boundaries, and calls the opcode decoding logic. It also handles advancing the pointer correctly for variable-length x86 instructions.</li>
+                <li><strong>opcode_decode.c:</strong> Contains the core logic for decoding x86 instructions. It interprets opcode bytes, handles MODRM and SIB bytes, and uses lookup tables to format operands. This module is responsible for converting raw bytes into human-readable assembly instructions.</li>
+            </ul>
+            <p><strong>Overall Flow:</strong> The tool starts by opening the target executable and parsing its headers (peheader.c). It then locates the code section and begins walking through it (opcode_walk.c), decoding each instruction (opcode_decode.c) and printing the disassembly. The process is coordinated by main.c, which ties all the modules together and manages the analysis session from start to finish.</p>
+        </div>
+        <h2>Development Timeline and Context</h2>
+        <div class="tool-structure">
+            <ul>
+                <li><strong>2013:</strong> Started as a hobby project to learn about PE files and x86 assembly.</li>
+                <li>Inspired by curiosity about how disassemblers and debuggers work internally.</li>
+                <li>Used Code::Blocks on Windows for development and testing.</li>
+                <li>Relied on MSDN, Intel manuals, and lots of trial and error.</li>
+            </ul>
+        </div>
+        <h2>Challenges and Lessons Learned</h2>
+        <div class="tool-structure">
+            <ul>
+                <li>Understanding the PE file format and Windows internals.</li>
+                <li>Decoding x86 instructions, especially MODRM and SIB bytes.</li>
+                <li>Handling different section types and RVA/offset conversions.</li>
+                <li>Debugging with limited tools and documentation.</li>
+            </ul>
+        </div>
+        <h2>Limitations and Next Steps</h2>
+        <div class="tool-structure">
+            <ul>
+                <li>Only supports basic x86 instructions (no floating point, SSE, or 64-bit).</li>
+                <li>No GUI or interactive features—console only.</li>
+                <li>Not a full-featured disassembler (no control flow, no symbol resolution).</li>
+                <li>Could be extended to support more instruction sets and better output formatting.</li>
+            </ul>
+        </div>
+        <h2>Personal Note</h2>
+        <div class="success">
+            <p>This project was a major step in my journey to understanding binary formats, Windows internals, and reverse engineering. Writing a disassembler from scratch, even a basic one, gave me a deep appreciation for the complexity of executable formats and the power of low-level programming. If you're learning C or interested in reverse engineering, I highly recommend building something similar—it's a fantastic way to learn!</p>
+        </div>
+    </div>
+</body>
+</html> 
