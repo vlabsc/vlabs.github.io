@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GhostSIM: Attack Simulation - Proof-of-Concept</title>
+    <style>
+        body { background-color: black; color: white; font-family: 'Arial', sans-serif; margin: 0; padding: 0; line-height: 1.6; }
+        .container { max-width: 900px; margin: 0 auto; padding: 2em; }
+        .header { text-align: center; margin-bottom: 3em; border-bottom: 2px solid #00ff00; padding-bottom: 2em; }
+        h1 { font-size: 3em; margin-bottom: 0.5em; color: #00ff00; }
+        .subtitle { font-size: 1.2em; color: #cccccc; font-style: italic; }
+        .meta { color: #888888; font-size: 0.9em; margin-top: 1em; }
+        .labels { margin-top: 1.5em; margin-bottom: 2em; }
+        .label { display: inline-block; background: #1a1a1a; color: #00ff00; border: 1px solid #00ff00; border-radius: 4px; padding: 0.3em 0.9em; margin-right: 0.5em; margin-bottom: 0.5em; font-size: 0.95em; cursor: pointer; transition: background 0.2s, color 0.2s; }
+        .label:hover { background: #00ff00; color: black; }
+        h2 { font-size: 2em; color: #00ff00; margin-top: 2em; margin-bottom: 1em; border-left: 4px solid #00ff00; padding-left: 1em; }
+        h3 { font-size: 1.5em; color: #00ff00; margin-top: 1.5em; margin-bottom: 0.8em; }
+        p { font-size: 1.1em; margin-bottom: 1.5em; text-align: justify; }
+        .code-block { background-color: #1a1a1a; border: 1px solid #00ff00; border-radius: 5px; padding: 1em; margin: 1.5em 0; font-family: 'Courier New', monospace; overflow-x: auto; white-space: pre; line-height: 1.4; }
+        .back-link { display: inline-block; color: white; text-decoration: none; font-size: 1.1em; padding: 0.8em 1.5em; border: 2px solid white; border-radius: 5px; transition: all 0.3s ease; margin-top: 2em; }
+        .back-link:hover { background-color: white; color: black; }
+        .toc { background-color: #1a1a1a; border: 1px solid #00ff00; border-radius: 5px; padding: 1.5em; margin: 2em 0; }
+        .toc h3 { margin-top: 0; }
+        .toc ul { list-style: none; padding-left: 0; }
+        .toc li { margin-bottom: 0.5em; }
+        .toc a { color: #00ff00; text-decoration: none; }
+        .toc a:hover { text-decoration: underline; }
+        ul { margin-bottom: 1.5em; }
+        li { margin-bottom: 0.5em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>GhostSIM: Attack Simulation - Proof-of-Concept</h1>
+            <div class="subtitle">A Rust-based framework for controlled attack simulation and adversary emulation</div>
+            <div class="meta">
+                Published: June 2024 | Author: SV | Reading Time: 12 minutes
+            </div>
+            <div class="labels">
+                <span class="label" data-labels="Rust">Rust</span>
+                <span class="label" data-labels="Attack Simulation">Attack Simulation</span>
+                <span class="label" data-labels="Red Team">Red Team</span>
+                <span class="label" data-labels="Security Research">Security Research</span>
+                <span class="label" data-labels="Proof-of-Concept">Proof-of-Concept</span>
+            </div>
+        </div>
+
+        <div class="toc">
+            <h3>Table of Contents</h3>
+            <ul>
+                <li><a href="#introduction">1. Introduction</a></li>
+                <li><a href="#attack-simulation">2. What is Attack Simulation?</a></li>
+                <li><a href="#project-overview">3. Project Overview</a></li>
+                <li><a href="#tool-architecture">4. Tool Architecture</a></li>
+                <li><a href="#attack-scenarios">5. Attack Scenarios</a></li>
+                <li><a href="#rust-highlights">6. Rust Highlights</a></li>
+                <li><a href="#why-rust">7. Why Rust?</a></li>
+                <li><a href="#example-usage">8. Example Usage</a></li>
+                <li><a href="#personal-note">9. Personal Note</a></li>
+                <li><a href="#conclusion">10. Conclusion</a></li>
+            </ul>
+        </div>
+
+        <section id="introduction">
+            <h2>Introduction</h2>
+            <p><strong>GhostSIM</strong> is a sophisticated attack simulation framework built in Rust that enables security researchers, red teams, and penetration testers to safely simulate various attack scenarios in controlled environments. The tool provides a modular, configuration-driven approach to attack simulation with built-in process isolation and comprehensive logging capabilities.</p>
+            <p>Source code and documentation are available at: <a href="https://github.com/vlabsc/gsim" target="_blank" style="color: #00ff00; text-decoration: none;">https://github.com/vlabsc/gsim</a></p>
+        </section>
+
+        <section id="attack-simulation">
+            <h2>What is Attack Simulation?</h2>
+            <p>Attack simulation is a controlled method of testing security defenses by emulating real-world attack techniques and procedures (TTPs) in a safe, monitored environment. This approach helps organizations:</p>
+            <ul>
+                <li><b>Validate Security Controls:</b> Test the effectiveness of existing security measures against known attack patterns</li>
+                <li><b>Improve Incident Response:</b> Practice and refine incident response procedures in realistic scenarios</li>
+                <li><b>Assess Detection Capabilities:</b> Evaluate how well security tools detect and respond to various attack types</li>
+                <li><b>Train Security Teams:</b> Provide hands-on experience with attack techniques without the risks of real threats</li>
+                <li><b>Compliance Testing:</b> Meet regulatory requirements for security testing and validation</li>
+            </ul>
+        </section>
+
+        <section id="project-overview">
+            <h2>Project Overview</h2>
+            <p><strong>GhostSIM</strong> transforms attack simulation from a manual, error-prone process into a systematic, repeatable framework. Its key features include:</p>
+            <ul>
+                <li>Modular architecture with separate launcher and payload components</li>
+                <li>Configuration-driven execution with JSON-based job definitions</li>
+                <li>Process isolation to prevent accidental system compromise</li>
+                <li>Comprehensive logging with timestamped levels and per-process log files</li>
+                <li>AV detection and graceful handling of security tool interruptions</li>
+                <li>Extensible design for easy addition of new attack scenarios</li>
+            </ul>
+        </section>
+
+        <section id="tool-architecture">
+            <h2>Tool Architecture</h2>
+            <p>GhostSIM is built using Rust's cargo workspaces, organized into three main components:</p>
+            <ul>
+                <li><b>Common Crate:</b> A pure-Rust library containing shared functionality:
+                    <ul>
+                        <li>Configuration management (RootConfig and JobConfig structures)</li>
+                        <li>Logging system with mutex-protected, timestamped output</li>
+                        <li>Utility functions for screen clearing and directory operations</li>
+                    </ul>
+                </li>
+                <li><b>Launcher Crate:</b> The main executable that orchestrates attack simulations:
+                    <ul>
+                        <li>Security checks to ensure execution in sandbox environments</li>
+                        <li>Configuration parsing and job execution management</li>
+                        <li>Process spawning with environment variable controls</li>
+                        <li>Exit code interpretation and logging</li>
+                    </ul>
+                </li>
+                <li><b>Simulators Crate:</b> Individual payload executables for different attack types:
+                    <ul>
+                        <li>Ransomware simulation (simple_xor variant)</li>
+                        <li>PowerShell execution simulation (ps_exec variant)</li>
+                        <li>Future adversary emulation capabilities</li>
+                    </ul>
+                </li>
+            </ul>
+        </section>
+
+        <section id="attack-scenarios">
+            <h2>Attack Scenarios</h2>
+            <p>GhostSIM implements right now two attack scenarios designed to test different aspects of security defenses:</p>
+            <h3>Ransomware Simulation (simple_xor)</h3>
+            <p><b>What it is:</b> <br>
+            The <b>simple_xor</b> scenario is a controlled ransomware simulation designed to safely demonstrate file encryption techniques in a test environment. Its purpose is to mimic the core behavior of real ransomware—encrypting files—without causing irreversible data loss or spreading beyond the intended directory. This allows defenders to validate detection, response, and recovery processes against ransomware-like activity.</p>
+            <p><b>How it works:</b> <br>
+            When launched, the <code>simple_xor</code> payload reads its configuration from <code>config.json</code>, locating its job entry by the <code>variant</code> field. It checks if execution is enabled ("execute": "yes"). If so, it extracts the <code>target_dir</code> (directory to encrypt) and <code>key</code> (XOR key) from the job options.<br><br>
+            The payload then iterates over every file in the specified directory (ignoring subdirectories). For each file, it reads the contents, applies a byte-wise XOR operation using the provided key, and overwrites the file with the encrypted data. All actions are logged with timestamps and status messages. The process is wrapped in a panic handler: if the payload is killed by antivirus (AV) or crashes, this is logged as a warning, and the launcher interprets a non-zero exit code as a successful AV interruption.<br><br>
+            The payload will only run if invoked by the GhostSIM launcher (checked via the <code>GSIM_ALLOWED</code> environment variable), ensuring it cannot be executed accidentally or outside the sandbox.</p>
+            <p><b>What it does:</b> <br>
+            The simulation encrypts all files in the target directory using a simple XOR cipher, which is easily reversible for demonstration purposes. No files are exfiltrated or deleted, and no persistence or spreading is attempted. Every step—start, each file processed, completion, or interruption—is logged to a per-process log file in <code>gsim_logs/</code>. This provides defenders with a clear audit trail for detection and response testing, while ensuring the simulation is safe and easily resettable.</p>
+            <h3>PowerShell Execution (ps_exec)</h3>
+            <p><b>What it is:</b> <br>
+            The <b>ps_exec</b> scenario simulates the execution of a potentially malicious PowerShell script, a common technique used by attackers for initial access, lateral movement, or post-exploitation. This scenario is designed to test endpoint detection and response (EDR) solutions and blue team monitoring for script-based attacks in a controlled, repeatable way.</p>
+            <p><b>How it works:</b> <br>
+            The <code>ps_exec</code> payload is configured via <code>config.json</code>, where it locates its job by the <code>variant</code> field. If execution is enabled, it extracts the <code>script</code> path from the job options. The payload then launches <code>powershell.exe</code> with arguments to bypass execution policy, run the specified script file, and suppress user interaction (no profile, non-interactive, hidden window).<br><br>
+            The payload logs the start, command-line invocation, and the result (success or exit code). Like other GhostSIM payloads, it will only run if invoked by the launcher (checked via <code>GSIM_ALLOWED</code>), and logs are written to <code>gsim_logs/</code>. If the script completes successfully, this is logged as a success; if AV or EDR blocks or kills the process, the non-zero exit code is logged as a warning and treated as a successful detection by the launcher.</p>
+            <p><b>What it does:</b> <br>
+            This scenario executes a real PowerShell script (provided in the config) in a sandboxed environment, allowing defenders to observe and tune detection rules for script-based attacks. No persistence, privilege escalation, or spreading is attempted. The simulation is safe for test environments and provides detailed logs for every step, making it ideal for EDR validation and blue team exercises.</p>
+            <h3>Future Adversary Emulation</h3>
+            <p>The framework is designed to support APT-style simulations (e.g., APT28, APT29) for more sophisticated attack emulation scenarios.</p>
+        </section>
+
+        <section id="rust-highlights">
+            <h2>Rust Highlights</h2>
+            <p>Below is a simplified example of how GhostSIM handles configuration and job execution:</p>
+            <div class="code-block">
+// Pseudocode for GhostSIM job execution
+#[derive(Deserialize)]
+pub struct JobConfig {
+    pub mode: String,      // "attacks" or "adversaries"
+    pub scenario: String,  // "ransomware", "powershell", etc.
+    pub variant: String,   // "simple_xor", "ps_exec", etc.
+    pub execute: String,   // "yes" or "no"
+    pub options: HashMap<String, Value>
+}
+
+// Job execution logic
+for job in config.jobs {
+    if job.execute == "yes" {
+        match job.mode.as_str() {
+            "attacks" => spawn_attack(job).await?,
+            "adversaries" => spawn_adversary(job).await?,
+            _ => log_warning("Unknown job type")
+        }
+    }
+}
+            </div>
+        </section>
+
+        <section id="why-rust">
+            <h2>Why Rust?</h2>
+            <p>Rust was chosen for its memory safety, performance, and reliability. These qualities are crucial for attack simulation tools that need to operate reliably in security-sensitive environments while providing the performance necessary for complex simulation scenarios.</p>
+        </section>
+
+        <section id="example-usage">
+            <h2>Example Usage</h2>
+            <p>GhostSIM uses a JSON-based configuration system to define attack scenarios. Here's a sample configuration:</p>
+            <div class="code-block">
+{
+  "jobs": [
+    {
+      "type": "attacks",
+      "scenario": "simple_xor",
+      "variant": "simple_xor",
+      "execute": "no",
+      "options": {
+        "target_dir": "V:\\gsim_test\\sandbox",
+        "key": 170
+      }
+    },
+    {
+      "type": "attacks",
+      "scenario": "powershell",
+      "variant": "ps_exec",
+      "execute": "yes",
+      "options": {
+        "script": "V:\\gsim_test\\sandbox\\calc_exec.ps1"
+      }
+    }
+  ]
+}
+            </div>
+            <p>The launcher reads this configuration, executes enabled jobs, and provides detailed logging of all activities in the <code>gsim_logs/</code> directory.</p>
+            <h3>JSON Configuration Fields</h3>
+            <p>The configuration file uses a hierarchical structure with the following key components:</p>
+            <ul>
+                <li><b>jobs:</b> An array containing all attack simulation jobs to be executed. Each job represents a single attack scenario with its specific parameters.</li>
+            </ul>
+            <p>Each job object contains the following fields:</p>
+            <ul>
+                <li><b>type:</b> Specifies the category of the attack. Currently supports "attacks" for direct attack simulations. Future versions will support "adversaries" for APT-style emulation scenarios.</li>
+                <li><b>scenario:</b> Defines the broad attack category. Examples include "ransomware" for file encryption attacks or "powershell" for script-based attacks. This field helps organize attacks by their primary technique.</li>
+                <li><b>variant:</b> Identifies the specific implementation variant of the attack. This must match the executable name (without .exe) that will be spawned. Examples: "simple_xor" for the XOR-based ransomware simulation, "ps_exec" for PowerShell execution simulation.</li>
+                <li><b>execute:</b> Controls whether this job should be executed. Accepts "yes" or "no" (case-insensitive). Jobs with "execute": "no" are skipped entirely, allowing you to disable specific scenarios without removing them from the configuration.</li>
+                <li><b>options:</b> A key-value object containing scenario-specific parameters. The contents depend on the attack type:
+                    <ul>
+                        <li><b>For simple_xor ransomware:</b>
+                            <ul>
+                                <li><code>target_dir:</code> The directory path where files will be encrypted. Should point to a sandbox directory for safety.</li>
+                                <li><code>key:</code> The XOR key (0-255) used for encryption. This determines the encryption pattern and can be used to test different encryption methods.</li>
+                            </ul>
+                        </li>
+                        <li><b>For ps_exec PowerShell:</b>
+                            <ul>
+                                <li><code>script:</code> The full path to the PowerShell script file that will be executed. The script should be located in a safe test environment.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+            <p><b>Configuration Best Practices:</b></p>
+            <ul>
+                <li>Always use absolute paths for file and directory references to avoid path resolution issues</li>
+                <li>Set "execute": "no" for scenarios you want to keep configured but not run</li>
+                <li>Use descriptive variant names that clearly indicate the attack type</li>
+                <li>Ensure target directories are in sandbox environments to prevent accidental system compromise</li>
+                <li>Test configurations with "execute": "no" first to validate JSON syntax</li>
+            </ul>
+        </section>
+
+        <section id="personal-note">
+            <h2>Personal Note</h2>
+            <p>This is currently a proof-of-concept demonstrating the potential of systematic attack simulation frameworks. While the basic functionality works, there's significant development work ahead. Here are 5 important features that need to be implemented:</p>
+            <ul>
+                <li><b>Advanced Adversary Emulation:</b> Implement sophisticated APT-style simulations with multi-stage attack chains, persistence mechanisms, and lateral movement capabilities to test enterprise security postures.</li>
+                <li><b>Web-based Management Interface:</b> Develop a secure web UI for configuration management, real-time monitoring of simulation progress, and result analysis to make the tool more accessible to non-technical users.</li>
+                <li><b>Enhanced Logging and Analytics:</b> Add centralized log aggregation, automated report generation, and integration with SIEM systems for comprehensive analysis of simulation results and security tool effectiveness.</li>
+                <li><b>Multi-Platform Support:</b> Extend support beyond Windows to include Linux and macOS environments, enabling cross-platform attack simulation and testing of heterogeneous security infrastructures.</li>
+                <li><b>Integration with Security Frameworks:</b> Add compatibility with MITRE ATT&CK, Cyber Kill Chain, and other security frameworks to standardize attack simulation scenarios and enable better comparison of results across different environments.</li>
+            </ul>
+            <p>The current implementation serves as a foundation for these more advanced features, demonstrating the core concept of controlled, systematic attack simulation.</p>
+        </section>
+
+        <section id="conclusion">
+            <h2>Conclusion</h2>
+            <p><strong>GhostSIM</strong> represents a significant step forward in attack simulation methodology. By providing a structured, safe, and repeatable framework for testing security defenses, it enables organizations to better understand their security posture and improve their incident response capabilities. The modular Rust architecture ensures reliability and extensibility for future enhancements, making it a valuable tool for security researchers and red teams.</p>
+        </section>
+
+        <a class="back-link" href="../../index.html">&larr; Back to Index</a>
+    </div>
+</body>
+</html> 

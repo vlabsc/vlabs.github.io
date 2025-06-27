@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PE Header Parser: Evolution of a Windows Binary Analysis Tool</title>
+    <style>
+        body { background-color: black; color: white; font-family: 'Arial', sans-serif; margin: 0; padding: 0; line-height: 1.6; }
+        .container { max-width: 900px; margin: 0 auto; padding: 2em; }
+        .header { text-align: center; margin-bottom: 3em; border-bottom: 2px solid #00ff00; padding-bottom: 2em; }
+        h1 { font-size: 3em; margin-bottom: 0.5em; color: #00ff00; }
+        .subtitle { font-size: 1.2em; color: #cccccc; font-style: italic; }
+        .meta { color: #888888; font-size: 0.9em; margin-top: 1em; }
+        .labels { margin-top: 1.5em; margin-bottom: 2em; }
+        .label { display: inline-block; background: #1a1a1a; color: #00ff00; border: 1px solid #00ff00; border-radius: 4px; padding: 0.3em 0.9em; margin-right: 0.5em; margin-bottom: 0.5em; font-size: 0.95em; cursor: pointer; transition: background 0.2s, color 0.2s; }
+        .label:hover { background: #00ff00; color: black; }
+        h2 { font-size: 2em; color: #00ff00; margin-top: 2em; margin-bottom: 1em; border-left: 4px solid #00ff00; padding-left: 1em; }
+        h3 { font-size: 1.5em; color: #00ff00; margin-top: 1.5em; margin-bottom: 0.8em; }
+        p { font-size: 1.1em; margin-bottom: 1.5em; text-align: justify; }
+        .code-block { background-color: #1a1a1a; border: 1px solid #00ff00; border-radius: 5px; padding: 1em; margin: 1.5em 0; font-family: 'Courier New', monospace; overflow-x: auto; white-space: pre; line-height: 1.4; }
+        .back-link { display: inline-block; color: white; text-decoration: none; font-size: 1.1em; padding: 0.8em 1.5em; border: 2px solid white; border-radius: 5px; transition: all 0.3s ease; margin-top: 2em; }
+        .back-link:hover { background-color: white; color: black; }
+        .toc { background-color: #1a1a1a; border: 1px solid #00ff00; border-radius: 5px; padding: 1.5em; margin: 2em 0; }
+        .toc h3 { margin-top: 0; }
+        .toc ul { list-style: none; padding-left: 0; }
+        .toc li { margin-bottom: 0.5em; }
+        .toc a { color: #00ff00; text-decoration: none; }
+        .toc a:hover { text-decoration: underline; }
+        ul { margin-bottom: 1.5em; }
+        li { margin-bottom: 0.5em; }
+        .highlight-box { background-color: #1a1a1a; border: 1px solid #00ff00; border-radius: 5px; padding: 1.5em; margin: 1.5em 0; }
+        .terminal-demo { background-color: #1a1a1a; border: 1px solid #00ff00; border-radius: 5px; padding: 1em; margin: 1.5em 0; font-family: 'Courier New', monospace; font-size: 0.9em; }
+        .version-timeline { background-color: #1a1a1a; border: 1px solid #00ff00; border-radius: 5px; padding: 1em; margin: 1.5em 0; }
+        .version-timeline table { width: 100%; border-collapse: collapse; }
+        .version-timeline th, .version-timeline td { border: 1px solid #00ff00; padding: 0.5em; text-align: left; }
+        .version-timeline th { background-color: #2a2a2a; }
+        code { color: #00ff00; background-color: #1a1a1a; padding: 0.2em 0.4em; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>PE Header Parser: Evolution of a Windows Binary Analysis Tool</h1>
+            <div class="subtitle">From Basic DOS Header Reading to Complete PE32 Analysis</div>
+            <div class="meta">
+                Published: December 2024 | Author: SV | Reading Time: 12 minutes
+            </div>
+            <div class="labels">
+                <span class="label" data-labels="Assembly">Assembly</span>
+                <span class="label" data-labels="Reverse Engineering">Reverse Engineering</span>
+                <span class="label" data-labels="Windows">Windows</span>
+                <span class="label" data-labels="PE Format">PE Format</span>
+                <span class="label" data-labels="FASM">FASM</span>
+            </div>
+        </div>
+
+        <div class="toc">
+            <h3>Table of Contents</h3>
+            <ul>
+                <li><a href="#introduction">1. Introduction</a></li>
+                <li><a href="#pe-format-basics">2. PE Format Basics</a></li>
+                <li><a href="#project-overview">3. Project Overview</a></li>
+                <li><a href="#version-evolution">4. Version Evolution</a></li>
+                <li><a href="#architecture">5. Program Architecture</a></li>
+                <li><a href="#dos-header-parsing">6. DOS Header Parsing</a></li>
+                <li><a href="#nt-header-analysis">7. NT Header Analysis</a></li>
+                <li><a href="#section-headers">8. Section Headers</a></li>
+                <li><a href="#import-analysis">9. Import Table Analysis</a></li>
+                <li><a href="#error-handling">10. Error Handling</a></li>
+                <li><a href="#cybersecurity-applications">11. Cybersecurity Applications</a></li>
+                <li><a href="#conclusion">12. Conclusion</a></li>
+            </ul>
+        </div>
+
+        <section id="introduction">
+            <h2>Introduction</h2>
+            <p><strong>Have you ever wondered how Windows executables are structured?</strong> The PE (Portable Executable) format is the foundation of all Windows applications, and understanding it is crucial for reverse engineering, malware analysis, and security research.</p>
+            <p>In this article, I'll walk through the evolution of a PE header parser that I have written in assembly language using FASM. What started as a simple DOS header reader grew into a comprehensive tool for analyzing PE32 files, demonstrating the power of assembly language for binary analysis.</p>
+        </section>
+
+        <section id="pe-format-basics">
+            <h2>PE Format Basics</h2>
+            <p>The PE (Portable Executable) format is the standard file format for executables, DLLs, and other binary files on Windows. It consists of several key components:</p>
+            
+            <ul>
+                <li><b>DOS Header:</b> Legacy compatibility header (64 bytes)</li>
+                <li><b>DOS Stub:</b> Small DOS program for backward compatibility</li>
+                <li><b>PE Header:</b> Contains file header and optional header</li>
+                <li><b>Section Headers:</b> Information about code, data, and other sections</li>
+                <li><b>Section Data:</b> Actual code and data content</li>
+            </ul>
+
+            <div class="highlight-box">
+                <h3>PE File Structure</h3>
+                <p><strong>DOS Header (64 bytes):</strong> Contains magic number "MZ" and offset to PE header</p>
+                <p><strong>PE Header:</strong> Contains file characteristics, machine type, and entry point</p>
+                <p><strong>Optional Header:</strong> Contains image base, section alignment, and data directories</p>
+                <p><strong>Section Headers:</strong> Define code, data, import, and export sections</p>
+            </div>
+        </section>
+
+        <section id="project-overview">
+            <h2>Project Overview</h2>
+            <p>The PE header parser project evolved through six major versions, each adding more functionality and complexity. The tool analyzes PE32 files and displays detailed information about their structure.</p>
+            
+            <div class="terminal-demo">
+processing qbot2.exe (Qakbot malware sample) ...<br>
+----------| Dos header |----------<br>
+DOSHeader.Signature: MZ<br>
+DOSHeader.Offset to NT Header: 0x000000E8<br>
+----------| Nt header -> image file header |----------<br>
+NTHeader.Signature: PE<br>
+NTHeader.FileHeader.Machine: 014C<br>
+NTHeader.FileHeader.Number of Sections: 6<br>
+NTHeader.FileHeader.SizeOfOptionalHeader: E0<br>
+----------| Nt header -> image optional header |----------<br>
+NTHeader.OptionalHeader.Magic: 010B<br>
+NTHeader.OptionalHeader.Address offset Entry Point: 00001000<br>
+NTHeader.OptionalHeader.BaseOfCode: 00001000<br>
+NTHeader.OptionalHeader.BaseOfData: 00002000<br>
+NTHeader.OptionalHeader.ImageBase: 00400000
+            </div>
+
+            <p>The program reads a PE file into memory, parses its headers, and displays comprehensive information about the file structure, including imports, exports, and section details. In this example, we're analyzing a Qakbot malware sample to understand its PE structure and characteristics.</p>
+        </section>
+
+        <section id="version-evolution">
+            <h2>Version Evolution</h2>
+            <p>The project evolved through six major versions, each building upon the previous one:</p>
+
+            <div class="version-timeline">
+                <table>
+                    <tr>
+                        <th>Version</th>
+                        <th>Features</th>
+                        <th>Code Size</th>
+                        <th>Key Improvements</th>
+                    </tr>
+                    <tr>
+                        <td>0.1</td>
+                        <td>Basic structure</td>
+                        <td>36 lines</td>
+                        <td>Initial framework</td>
+                    </tr>
+                    <tr>
+                        <td>0.2</td>
+                        <td>DOS header parsing</td>
+                        <td>~100 lines</td>
+                        <td>Magic number detection</td>
+                    </tr>
+                    <tr>
+                        <td>0.3</td>
+                        <td>NT header reading</td>
+                        <td>~200 lines</td>
+                        <td>PE signature validation</td>
+                    </tr>
+                    <tr>
+                        <td>0.4</td>
+                        <td>File header analysis</td>
+                        <td>~400 lines</td>
+                        <td>Machine type, sections</td>
+                    </tr>
+                    <tr>
+                        <td>0.5</td>
+                        <td>Optional header</td>
+                        <td>~600 lines</td>
+                        <td>Entry point, image base</td>
+                    </tr>
+                    <tr>
+                        <td>0.6</td>
+                        <td>Complete analysis</td>
+                        <td>913 lines</td>
+                        <td>Imports, exports, sections</td>
+                    </tr>
+                </table>
+            </div>
+
+            <h3>Version 0.1: The Foundation</h3>
+            <p>The first version was a simple framework with basic memory management:</p>
+
+            <div class="code-block">
+; 0.1 - Basic structure
+section '.data' data readable writeable
+pe32file.addressof.buffer.already.read dd ?
+pe32file.sizeof.buffer.already.read dd ?
+
+section '.text' code readable executable
+pe32parser:
+    push ebp
+    mov ebp, esp
+    
+    mov eax, [esp + 8]        ; file buffer memory
+    mov [pe32file.addressof.buffer.already.read], eax
+    mov ebx, [esp + 12]       ; file size
+    mov [pe32file.sizeof.buffer.already.read], ebx
+    
+    mov esp, ebp
+    pop ebp
+    ret
+            </div>
+
+            <h3>Version 0.6: Complete Implementation</h3>
+            <p>The final version includes comprehensive PE analysis with detailed output formatting and error handling.</p>
+        </section>
+
+        <section id="architecture">
+            <h2>Program Architecture</h2>
+            <p>I tried to make the PE header parser with a modular way with separate components for different aspects of PE analysis:</p>
+
+            <div class="highlight-box">
+                <h3>Program Components</h3>
+                <p><strong>pe32.asm:</strong> Main program entry point and file I/O</p>
+                <p><strong>pe32parser.asm:</strong> Core PE parsing logic</p>
+                <p><strong>print_getlasterror.asm:</strong> Error handling and reporting</p>
+                <p><strong>pe32scanfiles.asm:</strong> File scanning functionality (placeholder)</p>
+                <p><strong>vlabs_fasm_libraries32_cur.asm:</strong> Utility functions</p>
+            </div>
+
+            <h3>Main Program Flow</h3>
+            <div class="code-block">
+; Main program structure
+main:
+    ; 1. Open PE file
+    invoke CreateFileA, pe32.file.name, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL
+    
+    ; 2. Allocate memory for file content
+    invoke GlobalAlloc, GMEM_MOVEABLE, [pe32.file.size]
+    invoke GlobalLock, [hMemory]
+    
+    ; 3. Read file into memory
+    invoke ReadFile, [pe32.file.handle], [pMemory], [pe32.file.content.buffer.size.to.read], buffer.size.read, NULL
+    
+    ; 4. Parse PE headers
+    push [pe32.file.content.buffer.size.to.read]
+    push [pMemory]
+    call pe32parser
+    
+    ; 5. Clean up resources
+    invoke GlobalUnlock, [pMemory]
+    invoke GlobalFree, [hMemory]
+    invoke CloseHandle, [pe32.file.handle]
+            </div>
+        </section>
+
+        <section id="dos-header-parsing">
+            <h2>DOS Header Parsing</h2>
+            <p>The DOS header is the first 64 bytes of every PE file. It contains legacy information and the crucial offset to the PE header.</p>
+
+            <div class="code-block">
+; DOS Header structure analysis
+pe32.Offset.DOSHeader dd 0x00000000
+pe32.Offset.DOSHeader.e_magic dd 0x00        ; "MZ" signature
+pe32.Offset.DOSHeader.e_lfanew dd 0x3c       ; Offset to PE header
+
+; Reading DOS header
+mov esi, [pe32file.addressof.buffer.already.read]
+mov [pe32.Offset.DOSHeader], esi
+
+; Get offset to PE header
+mov esi, [pe32.Offset.DOSHeader]
+add esi, [pe32.Offset.DOSHeader.e_lfanew]    ; 0x3c
+mov eax, [esi]
+mov [pe32.Offset.NTHeader], eax
+            </div>
+
+            <p>The DOS header contains the "MZ" signature (0x5A4D) and the offset to the PE header at offset 0x3C. This offset is crucial for locating the actual PE structure within the file.</p>
+        </section>
+
+        <section id="nt-header-analysis">
+            <h2>NT Header Analysis</h2>
+            <p>The NT header contains the PE signature and two main components: the file header and optional header.</p>
+
+            <h3>PE Signature Validation</h3>
+            <div class="code-block">
+; PE signature validation
+mov esi, [pe32.Offset.DOSHeader]
+add esi, [pe32.Offset.NTHeader]              ; Go to PE header
+mov [pe32.Value.NTHeader], esi
+
+; Check for "PE" signature (0x00004550)
+mov eax, [esi]
+cmp eax, 0x00004550                          ; "PE\0\0"
+jne invalid_pe_file
+            </div>
+
+            <h3>File Header Analysis</h3>
+            <div class="code-block">
+; File header fields
+pe32.Offset.NTHeader.FileHeader.Machine dd 0x04           ; Machine type
+pe32.Offset.NTHeader.FileHeader.NumberOfSections dd 0x06  ; Number of sections
+pe32.Offset.NTHeader.FileHeader.SizeOfOptionalHeader dw 0x14 ; Optional header size
+
+; Reading file header information
+mov esi, [pe32.Value.NTHeader]
+add esi, [pe32.Offset.NTHeader.FileHeader.NumberOfSections]
+mov eax, [esi]
+mov word [pe32.Value.NTHeader.FileHeader.NumberOfSections], ax
+            </div>
+
+            <h3>Optional Header Analysis</h3>
+            <div class="code-block">
+; Optional header fields
+pe32.Offset.NTHeader.OptionalHeader.AddressOfEntryPoint dd 0x28
+pe32.Offset.NTHeader.OptionalHeader.BaseOfCode dd 0x2C
+pe32.Offset.NTHeader.OptionalHeader.ImageBase dd 0x34
+
+; Reading entry point and image base
+mov esi, [pe32.Value.NTHeader]
+add esi, [pe32.Offset.NTHeader.OptionalHeader.AddressOfEntryPoint]
+mov eax, [esi]
+mov [pe32.Value.NTHeader.OptionalHeader.AddressOfEntryPoint], eax
+            </div>
+        </section>
+
+        <section id="section-headers">
+            <h2>Section Headers</h2>
+            <p>Section headers define the different parts of the PE file, such as code, data, imports, and exports.</p>
+
+            <div class="code-block">
+; Section header structure
+pe32.Offset.SectionHeader.Name dw 0x0000           ; Section name
+pe32.Offset.SectionHeader.VirtualSize dw 0x0008   ; Virtual size
+pe32.Offset.SectionHeader.VirtualAddress dw 0x000c ; Virtual address (RVA)
+pe32.Offset.SectionHeader.SizeOfRawData dw 0x0010 ; Size in file
+pe32.Offset.SectionHeader.PointerToRawData dw 0x0014 ; File offset
+
+; Processing section headers
+mov ecx, [pe32.Value.NTHeader.FileHeader.NumberOfSections]
+section_loop:
+    ; Read section information
+    mov esi, [pe32.Value.NTHeader.OptionalHeader]
+    add esi, [pe32.Value.NTHeader.FileHeader.SizeOfOptionalHeader]
+    add esi, [pe32.Value.SectionHeader.Size]
+    mul ecx
+    add esi, eax
+    
+    ; Extract section details
+    mov eax, [esi + pe32.Offset.SectionHeader.VirtualSize]
+    mov [pe32.Value.SectionHeader.VirtualSize], eax
+    
+    loop section_loop
+            </div>
+
+            <p>Each section header is 40 bytes (0x28) and contains information about the section's virtual address, size, and file offset. This is crucial for understanding how the file is loaded into memory.</p>
+        </section>
+
+        <section id="import-analysis">
+            <h2>Import Table Analysis</h2>
+            <p>The import table contains information about DLLs and functions that the PE file depends on.</p>
+
+            <div class="code-block">
+; Import table analysis
+pe32.Offset.NTHeader.OptionalHeader.ImportTableRVA dd 0x68
+pe32.Offset.NTHeader.OptionalHeader.ImportAddressTableRVA dd 0xC0
+
+; Reading import table RVA
+mov esi, [pe32.Value.NTHeader]
+add esi, [pe32.Offset.NTHeader.OptionalHeader.ImportTableRVA]
+mov eax, [esi]
+mov [pe32.Value.NTHeader.OptionalHeader.ImportTableRVA], eax
+
+; Processing import directory table
+mov esi, [pe32file.addressof.buffer.already.read]
+add esi, [pe32.Value.NTHeader.OptionalHeader.ImportTableRVA]
+
+import_loop:
+    ; Check for end of import table
+    cmp dword [esi], 0
+    je import_done
+    
+    ; Read DLL name RVA
+    mov eax, [esi + 12]  ; Name RVA
+    add eax, [pe32file.addressof.buffer.already.read]
+    
+    ; Display DLL name
+    push eax
+    push printf.str41    ; "imported dll: %s"
+    call [printf]
+    add esp, 8
+    
+    add esi, 20          ; Next import entry
+    jmp import_loop
+            </div>
+
+            <p>The import table analysis reveals which DLLs the executable depends on and which functions it imports. This is crucial for understanding the program's behavior and dependencies.</p>
+        </section>
+
+        <section id="error-handling">
+            <h2>Error Handling</h2>
+            <p>The program includes comprehensive error handling for various file operation scenarios:</p>
+
+            <div class="code-block">
+; Error handling for file operations
+PrintGetLastError:
+    push pe32.file.name
+    push printf.str4     ; "Error in opening file %s. "
+    call [printf]
+    add esp, 8
+    
+    invoke GetLastError
+    
+    ; Specific error handling
+    cmp eax, 2
+    je L51               ; File Not Found
+    cmp eax, 3
+    je L52               ; Path Not Found
+    cmp eax, 5
+    je L53               ; Access denied
+    cmp eax, 8
+    je L54               ; Not enough memory
+    cmp eax, 15d
+    je L55               ; Invalid drive
+    cmp eax, 16d
+    je L56               ; Invalid directory
+    cmp eax, 80d
+    je L57               ; File already exists
+
+L51:
+    invoke printf, printf.creatfile.errorstrings.str1
+    jmp exitprogram
+            </div>
+
+            <p>Each error condition provides a specific, user-friendly message rather than generic error codes, making the tool more user-friendly despite being written in assembly.</p>
+        </section>
+
+        <section id="cybersecurity-applications">
+            <h2>Cybersecurity Applications</h2>
+            <p>PE header analysis has numerous applications in cybersecurity and reverse engineering:</p>
+
+            <h3>1. Malware Analysis</h3>
+            <p>PE header analysis is fundamental to malware analysis:</p>
+            <ul>
+                <li><b>Import analysis:</b> Understanding malware capabilities through imported functions</li>
+                <li><b>Entry point examination:</b> Locating the starting point of malicious code</li>
+                <li><b>Section analysis:</b> Identifying packed or obfuscated sections</li>
+                <li><b>Timestamp analysis:</b> Determining when malware was compiled</li>
+            </ul>
+
+            <h3>2. Reverse Engineering</h3>
+            <p>Understanding PE structure is essential for reverse engineering:</p>
+            <ul>
+                <li><b>Function location:</b> Mapping virtual addresses to file offsets</li>
+                <li><b>Dependency analysis:</b> Understanding program dependencies</li>
+                <li><b>Code analysis:</b> Locating and analyzing executable code sections</li>
+                <li><b>Data analysis:</b> Examining data sections and resources</li>
+            </ul>
+
+            <div class="code-block">
+; Example: Detecting suspicious imports
+mov esi, [import_table_address]
+check_imports:
+    mov eax, [esi + 12]  ; Function name RVA
+    add eax, [file_buffer]
+    
+    ; Check for suspicious functions
+    push eax
+    push "CreateRemoteThread"
+    call strcmp
+    cmp eax, 0
+    je suspicious_import
+    
+    ; Continue checking other imports
+            </div>
+
+            <h3>3. Anti-Virus Development</h3>
+            <p>PE header analysis is crucial for antivirus software:</p>
+            <ul>
+                <li><b>Signature matching:</b> Identifying known malware patterns</li>
+                <li><b>Heuristic analysis:</b> Detecting suspicious characteristics</li>
+                <li><b>Packing detection:</b> Identifying obfuscated or packed executables</li>
+                <li><b>Behavior analysis:</b> Understanding program capabilities</li>
+            </ul>
+
+        </section>
+
+        <section id="conclusion">
+            <h2>Conclusion: The Power of Assembly for Binary Analysis</h2>
+            <p>Building a PE header parser in assembly language helped to understand the power and precision of low-level programming for binary analysis. While high-level languages provide convenience, assembly offers unmatched control and understanding of the PE format.</p>            
+
+        </section>
+
+        <a class="back-link" href="../../index.html">&larr; Back to Index</a>
+    </div>
+</body>
+</html> 

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>aish: AI-Augmented Shell in Rust</title>
+    <style>
+        body { background-color: black; color: white; font-family: 'Arial', sans-serif; margin: 0; padding: 0; line-height: 1.6; }
+        .container { max-width: 900px; margin: 0 auto; padding: 2em; }
+        .header { text-align: center; margin-bottom: 3em; border-bottom: 2px solid #00ff00; padding-bottom: 2em; }
+        h1 { font-size: 3em; margin-bottom: 0.5em; color: #00ff00; }
+        .subtitle { font-size: 1.2em; color: #cccccc; font-style: italic; }
+        .meta { color: #888888; font-size: 0.9em; margin-top: 1em; }
+        .labels { margin-top: 1.5em; margin-bottom: 2em; }
+        .label { display: inline-block; background: #1a1a1a; color: #00ff00; border: 1px solid #00ff00; border-radius: 4px; padding: 0.3em 0.9em; margin-right: 0.5em; margin-bottom: 0.5em; font-size: 0.95em; cursor: pointer; transition: background 0.2s, color 0.2s; }
+        .label:hover { background: #00ff00; color: black; }
+        h2 { font-size: 2em; color: #00ff00; margin-top: 2em; margin-bottom: 1em; border-left: 4px solid #00ff00; padding-left: 1em; }
+        h3 { font-size: 1.5em; color: #00ff00; margin-top: 1.5em; margin-bottom: 0.8em; }
+        p { font-size: 1.1em; margin-bottom: 1.5em; text-align: justify; }
+        .code-block { background-color: #1a1a1a; border: 1px solid #00ff00; border-radius: 5px; padding: 1em; margin: 1.5em 0; font-family: 'Courier New', monospace; overflow-x: auto; white-space: pre; line-height: 1.4; }
+        .back-link { display: inline-block; color: white; text-decoration: none; font-size: 1.1em; padding: 0.8em 1.5em; border: 2px solid white; border-radius: 5px; transition: all 0.3s ease; margin-top: 2em; }
+        .back-link:hover { background-color: white; color: black; }
+        .toc { background-color: #1a1a1a; border: 1px solid #00ff00; border-radius: 5px; padding: 1.5em; margin: 2em 0; }
+        .toc h3 { margin-top: 0; }
+        .toc ul { list-style: none; padding-left: 0; }
+        .toc li { margin-bottom: 0.5em; }
+        .toc a { color: #00ff00; text-decoration: none; }
+        .toc a:hover { text-decoration: underline; }
+        ul { margin-bottom: 1.5em; }
+        li { margin-bottom: 0.5em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>aish: AI-Augmented Shell in Rust</h1>
+            <div class="subtitle">A Rust CLI shell with AI-powered command output analysis</div>
+            <div class="meta">
+                Published: June 2024 | Author: SV | Reading Time: 8 minutes
+            </div>
+            <div class="labels">
+                <span class="label" data-labels="Rust">Rust</span>
+                <span class="label" data-labels="AI">AI</span>
+                <span class="label" data-labels="Shell">Shell</span>
+                <span class="label" data-labels="CLI Tool">CLI Tool</span>
+                <span class="label" data-labels="Security Research">Security Research</span>
+            </div>
+        </div>
+
+        <div class="toc">
+            <h3>Table of Contents</h3>
+            <ul>
+                <li><a href="#introduction">1. Introduction</a></li>
+                <li><a href="#project-overview">2. Project Overview</a></li>
+                <li><a href="#tool-architecture">3. Tool Architecture</a></li>
+                <li><a href="#ai-integration">4. AI Integration</a></li>
+                <li><a href="#rust-highlights">5. Rust Highlights</a></li>
+                <li><a href="#why-rust">6. Why Rust?</a></li>
+                <li><a href="#example-usage">7. Example Usage</a></li>
+                <li><a href="#personal-note">8. Personal Note</a></li>
+                <li><a href="#conclusion">9. Conclusion</a></li>
+            </ul>
+        </div>
+
+        <section id="introduction">
+            <h2>Introduction</h2>
+            <p><strong>aish</strong> is an AI-augmented shell that brings intelligent analysis to command-line operations. Built in Rust, it provides real-time explanations and detailed analysis of command outputs, making complex system operations more accessible and understandable for users of all skill levels.</p>
+        </section>
+
+        <section id="project-overview">
+            <h2>Project Overview</h2>
+            <p><strong>aish</strong> transforms the traditional command-line experience by adding AI-powered insights. Its key features include:</p>
+            <ul>
+                <li>AI-driven command output explanation and analysis</li>
+                <li>Modular architecture for easy extension and customization</li>
+                <li>Interactive shell with intelligent command processing</li>
+                <li>Safe, fast, and reliable Rust backend</li>
+                <li>Configurable AI prompts for different analysis types</li>
+            </ul>
+        </section>
+
+        <section id="tool-architecture">
+            <h2>Tool Architecture</h2>
+            <p>The tool is organized into several Rust modules for clarity and extensibility:</p>
+            <ul>
+                <li><b>main.rs</b>: Entry point. Initializes all modules and runs the interactive shell loop.</li>
+                <li><b>modules/ai.rs</b>: Handles AI interactions, including OpenAI API calls and response processing.</li>
+                <li><b>modules/commands.rs</b>: Manages command execution and output capture.</li>
+                <li><b>modules/config.rs</b>: Handles configuration loading and prompt management.</li>
+                <li><b>modules/help.rs</b>: Provides help system and banner display functionality.</li>
+                <li><b>modules/utils.rs</b>: Contains utility functions for input handling and general operations.</li>
+            </ul>
+        </section>
+
+        <section id="ai-integration">
+            <h2>AI Integration</h2>
+            <p><strong>aish</strong> integrates AI to provide two types of analysis for command outputs:</p>
+            <ul>
+                <li><b>Explanation:</b> Provides clear, concise explanations of command outputs in user-friendly language</li>
+                <li><b>Analysis:</b> Offers detailed file-by-file analysis including file types, descriptions, sizes, and modification dates</li>
+            </ul>
+            <p>The AI integration uses configurable prompts stored in <code>instructions.conf</code>, allowing users to customize the type and depth of analysis provided. This makes the tool adaptable to different use cases and user preferences.</p>
+        </section>
+
+        <section id="rust-highlights">
+            <h2>Rust Highlights</h2>
+            <p>Below is a simplified example of how aish processes command outputs with AI:</p>
+            <div class="code-block">
+// Pseudocode for AI-driven command output analysis
+let output = execute_command("ls -la")?;
+let explanation = ai.process_output(&output, &config.get_prompt_explain()).await?;
+let analysis = ai.process_output(&output, &config.get_prompt_analyze()).await?;
+println!("[AI Explanation]: {}", explanation);
+println!("[AI Analysis]: {}", analysis);
+            </div>
+        </section>
+
+        <section id="why-rust">
+            <h2>Why Rust?</h2>
+            <p>Rust was chosen for its safety, performance, and reliability. Its strong type system and memory safety guarantees make it ideal for building robust shell tools that interact with system processes and handle user input securely.</p>
+        </section>
+
+        <section id="example-usage">
+            <h2>Example Usage</h2>
+            <p>aish provides an interactive shell experience with AI-powered insights. Here's a sample session:</p>
+            <div class="code-block">
+aish> ls -la
+total 1234
+drwxr-xr-x  2 user user  4096 Jun 15 10:30 .
+drwxr-xr-x 15 user user  4096 Jun 15 10:30 ..
+-rw-r--r--  1 user user   123 Jun 15 10:30 document.pdf
+-rw-r--r--  1 user user   456 Jun 15 10:30 script.sh
+
+[AI Explanation]: This command shows a detailed listing of files in the current directory. 
+The output displays file permissions, ownership, size, and modification dates.
+
+[AI Analysis]: 
+FILE: document.pdf
+1. Extension: .pdf
+2. File Type: PDF Document
+3. Description: PDF (Portable Document Format) is a file format used to present documents in a manner independent of application software, hardware, and operating systems.
+4. Size: 123 bytes
+5. Last Modified: Jun 15 10:30
+
+FILE: script.sh
+1. Extension: .sh
+2. File Type: Shell Script
+3. Description: Shell script files contain commands that can be executed by a Unix/Linux shell interpreter.
+4. Size: 456 bytes
+5. Last Modified: Jun 15 10:30
+            </div>
+        </section>
+
+        <section id="personal-note">
+            <h2>Personal Note</h2>
+            <p>This is currently a proof-of-concept demonstrating the potential of AI-augmented command-line tools. While the basic functionality works, there's still significant development work ahead. Here are 5 important features that need to be implemented:</p>
+            <ul>
+                <li><b>Command History and Context:</b> Implement persistent command history and context awareness to provide more intelligent analysis based on previous commands and their outputs.</li>
+                <li><b>Multi-Platform Support:</b> Extend support beyond basic Unix commands to include Windows PowerShell, cross-platform compatibility, and integration with various shell environments.</li>
+                <li><b>Advanced AI Prompts:</b> Develop specialized prompt templates for different command categories (file operations, network commands, system administration, etc.) to provide more targeted and useful analysis.</li>
+                <li><b>Real-time Command Suggestions:</b> Add intelligent command suggestions based on user behavior patterns and common workflows, helping users discover more efficient ways to accomplish tasks.</li>
+                <li><b>Security and Privacy Enhancements:</b> Implement local AI model support, command output sanitization, and configurable privacy controls to ensure sensitive information isn't exposed to external AI services.</li>
+            </ul>
+            <p>The current implementation serves as a foundation for these more advanced features, demonstrating the core concept of AI-enhanced command-line interaction.</p>
+        </section>
+
+        <section id="conclusion">
+            <h2>Conclusion</h2>
+            <p><strong>aish</strong> demonstrates the power of combining AI with traditional command-line tools. By providing intelligent explanations and analysis of command outputs, it makes the command line more accessible to users while maintaining the efficiency and power that experienced users expect. Its modular Rust architecture ensures reliability and extensibility for future enhancements.</p>
+        </section>
+
+        <a class="back-link" href="../../index.html">&larr; Back to Index</a>
+    </div>
+</body>
+</html> 

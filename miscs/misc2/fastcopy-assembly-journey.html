@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastCopy: A High-Performance File Copy Tool in Assembly</title>
+    <style>
+        body { background-color: black; color: white; font-family: 'Arial', sans-serif; margin: 0; padding: 0; line-height: 1.6; }
+        .container { max-width: 900px; margin: 0 auto; padding: 2em; }
+        .header { text-align: center; margin-bottom: 3em; border-bottom: 2px solid #00ff00; padding-bottom: 2em; }
+        h1 { font-size: 3em; margin-bottom: 0.5em; color: #00ff00; }
+        .subtitle { font-size: 1.2em; color: #cccccc; font-style: italic; }
+        .meta { color: #888888; font-size: 0.9em; margin-top: 1em; }
+        .labels { margin-top: 1.5em; margin-bottom: 2em; }
+        .label { display: inline-block; background: #1a1a1a; color: #00ff00; border: 1px solid #00ff00; border-radius: 4px; padding: 0.3em 0.9em; margin-right: 0.5em; margin-bottom: 0.5em; font-size: 0.95em; cursor: pointer; transition: background 0.2s, color 0.2s; }
+        .label:hover { background: #00ff00; color: black; }
+        h2 { font-size: 2em; color: #00ff00; margin-top: 2em; margin-bottom: 1em; border-left: 4px solid #00ff00; padding-left: 1em; }
+        h3 { font-size: 1.5em; color: #00ff00; margin-top: 1.5em; margin-bottom: 0.8em; }
+        p { font-size: 1.1em; margin-bottom: 1.5em; text-align: justify; }
+        .code-block { background-color: #1a1a1a; border: 1px solid #00ff00; border-radius: 5px; padding: 1em; margin: 1.5em 0; font-family: 'Courier New', monospace; overflow-x: auto; white-space: pre; line-height: 1.4; }
+        .back-link { display: inline-block; color: white; text-decoration: none; font-size: 1.1em; padding: 0.8em 1.5em; border: 2px solid white; border-radius: 5px; transition: all 0.3s ease; margin-top: 2em; }
+        .back-link:hover { background-color: white; color: black; }
+        .toc { background-color: #1a1a1a; border: 1px solid #00ff00; border-radius: 5px; padding: 1.5em; margin: 2em 0; }
+        .toc h3 { margin-top: 0; }
+        .toc ul { list-style: none; padding-left: 0; }
+        .toc li { margin-bottom: 0.5em; }
+        .toc a { color: #00ff00; text-decoration: none; }
+        .toc a:hover { text-decoration: underline; }
+        ul { margin-bottom: 1.5em; }
+        li { margin-bottom: 0.5em; }
+        .highlight-box { background-color: #1a1a1a; border: 1px solid #00ff00; border-radius: 5px; padding: 1.5em; margin: 1.5em 0; }
+        .terminal-demo { background-color: #1a1a1a; border: 1px solid #00ff00; border-radius: 5px; padding: 1em; margin: 1.5em 0; font-family: 'Courier New', monospace; font-size: 0.9em; }
+        .performance-table { background-color: #1a1a1a; border: 1px solid #00ff00; border-radius: 5px; padding: 1em; margin: 1.5em 0; font-family: 'Courier New', monospace; font-size: 0.9em; }
+        .performance-table table { width: 100%; border-collapse: collapse; }
+        .performance-table th, .performance-table td { border: 1px solid #00ff00; padding: 0.5em; text-align: left; }
+        .performance-table th { background-color: #2a2a2a; }
+        code { color: #00ff00; background-color: #1a1a1a; padding: 0.2em 0.4em; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>FastCopy: A High-Performance File Copy Tool</h1>
+            <div class="subtitle">Written in Assembly Language with FASM</div>
+            <div class="meta">
+                Published: December 2024 | Author: SV | Reading Time: 10 minutes
+            </div>
+            <div class="labels">
+                <span class="label" data-labels="Assembly">Assembly</span>
+                <span class="label" data-labels="Performance">Performance</span>
+                <span class="label" data-labels="Windows API">Windows API</span>
+                <span class="label" data-labels="File Operations">File Operations</span>
+                <span class="label" data-labels="FASM">FASM</span>
+            </div>
+        </div>
+
+        <div class="toc">
+            <h3>Table of Contents</h3>
+            <ul>
+                <li><a href="#introduction">1. Introduction</a></li>
+                <li><a href="#project-overview">2. Project Overview</a></li>
+                <li><a href="#assembly-basics">3. Assembly Language Basics</a></li>
+                <li><a href="#architecture">4. Program Architecture</a></li>
+                <li><a href="#command-line-parsing">5. Command Line Argument Parsing</a></li>
+                <li><a href="#file-operations">6. File Operations</a></li>
+                <li><a href="#memory-management">7. Memory Management</a></li>
+                <li><a href="#performance-analysis">8. Performance Analysis</a></li>
+                <li><a href="#error-handling">9. Error Handling</a></li>
+                <li><a href="#cybersecurity-applications">10. Cybersecurity Applications</a></li>
+                <li><a href="#conclusion">11. Conclusion</a></li>
+            </ul>
+        </div>
+
+        <section id="introduction">
+            <h2>Introduction</h2>
+            <p><strong>Have you ever wondered how fast file copying can really be?</strong> When you need to move large files quickly, the standard Windows copy tools often fall short. That's why I decided to build FastCopy - a high-performance file copy utility written entirely in assembly language.</p>
+            <p>In this article, I'll explain how a 64-bit assembly program can achieve impressive performance by working directly with the Windows API and optimizing every aspect of the file copying process. What started as a performance experiment became a practical tool for handling large file transfers.</p>
+        </section>
+
+        <section id="project-overview">
+            <h2>Project Overview</h2>
+            <p>FastCopy is a command-line utility that copies files from a source to a destination. Unlike standard copy tools, it's written in assembly language using FASM (Flat Assembler), which allows for direct control over system calls and memory management.</p>
+            
+            <div class="terminal-demo">
+fcopy64.exe source.txt destination.txt
+fast copy - 64bit. vlabs. Written in FASM.
+copying source.txt to destination.txt
+fcopy64 completed.
+            </div>
+
+            <p>The program handles files of any size, from small text files to massive multi-gigabyte files, with optimized memory allocation and efficient I/O operations.</p>
+        </section>
+
+        <section id="assembly-basics">
+            <h2>Assembly Language Basics</h2>
+            <p>Assembly language is the lowest-level programming language that directly corresponds to machine code. Writing in assembly gives us complete control over:</p>
+            
+            <ul>
+                <li><b>Memory management:</b> Direct control over memory allocation and deallocation</li>
+                <li><b>System calls:</b> Direct access to Windows API functions</li>
+                <li><b>Performance optimization:</b> No compiler overhead or unnecessary abstractions</li>
+                <li><b>Size optimization:</b> Minimal executable size with no runtime dependencies</li>
+            </ul>
+
+            <div class="code-block">
+; Basic FASM structure
+format PE64 console    ; 64-bit Windows console application
+entry start           ; Entry point
+
+section '.data' data readable writeable
+    ; Data section for variables
+
+section '.text' code readable executable
+start:
+    ; Main program logic
+
+section '.idata' import data readable
+    ; Import section for Windows API functions
+            </div>
+        </section>
+
+        <section id="architecture">
+            <h2>Program Architecture</h2>
+            <p>The FastCopy program follows a simple but efficient architecture:</p>
+
+            <div class="highlight-box">
+                <h3>Program Flow</h3>
+                <p>1. Parse command line arguments</p>
+                <p>2. Open source file for reading</p>
+                <p>3. Create destination file for writing</p>
+                <p>4. Allocate memory buffer</p>
+                <p>5. Read from source, write to destination in chunks</p>
+                <p>6. Clean up resources and exit</p>
+            </div>
+
+            <p>This straightforward approach eliminates unnecessary complexity while maximizing performance through direct system calls and optimized memory usage.</p>
+        </section>
+
+        <section id="command-line-parsing">
+            <h2>Command Line Argument Parsing</h2>
+            <p>One of the most interesting parts of the program is how it parses command line arguments. Unlike high-level languages that provide built-in argument parsing, assembly requires manual parsing of the command line string.</p>
+
+            <div class="code-block">
+; Get command line and parse arguments
+invoke GetCommandLineA
+mov [GetCommandLine.String], rax
+mov rsi, rax
+
+; Skip program name (first argument)
+L1000:
+    cmp byte [rsi], 32d    ; Check for space
+    je L1001
+    inc rsi
+    jmp L1000
+
+L1001:
+    inc rsi
+    inc rsi                ; Skip extra space added by cmd.exe
+    mov [GetCommandLine.Arg1], rsi  ; Store first argument address
+            </div>
+
+            <p>The program handles both quoted and unquoted arguments, making it compatible with Windows command line conventions. This includes support for file paths with spaces.</p>
+
+            <h3>Quoted Argument Handling</h3>
+            <p>For file paths containing spaces, the program detects double quotes and properly extracts the argument:</p>
+
+            <div class="code-block">
+; Check for quoted arguments
+cmp [rsi], byte 22h        ; Check for double quote
+je L1005
+
+L1005:
+    cmp [rsi], byte 22h    ; Look for closing quote
+    je L1006
+    inc rsi
+    jmp L1005
+
+L1006:
+    mov [rsi], byte 0      ; Null-terminate the argument
+            </div>
+        </section>
+
+        <section id="file-operations">
+            <h2>File Operations</h2>
+            <p>The core file operations use Windows API functions for maximum performance and compatibility:</p>
+
+            <div class="code-block">
+; Open source file
+invoke CreateFileA, [GetCommandLine.Arg1], GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL
+cmp eax, INVALID_HANDLE_VALUE
+je createfileinerror
+mov [filein], eax
+
+; Get file size
+invoke GetFileSizeEx, [filein], fileinsize
+
+; Create destination file
+invoke CreateFileA, [GetCommandLine.Arg2], GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL
+mov [fileout], eax
+            </div>
+
+            <h3>Dynamic Buffer Sizing</h3>
+            <p>The program uses intelligent buffer sizing based on file size:</p>
+
+            <div class="code-block">
+; Choose buffer size based on file size
+cmp [fileinsize], 41943040    ; 40 MB threshold
+jle alloc1
+    mov [fileinallocsize], 41943040    ; Use 40 MB for large files
+    jmp alloc2
+alloc1:
+    mov rax, [fileinsize]
+    mov [fileinallocsize], eax         ; Use file size for small files
+alloc2:
+            </div>
+
+            <p>This approach optimizes memory usage - small files use a buffer equal to their size (allowing single-pass copying), while large files use a 40MB buffer for efficient chunked copying.</p>
+        </section>
+
+        <section id="memory-management">
+            <h2>Memory Management</h2>
+            <p>Efficient memory management is crucial for performance. The program uses Windows Global Memory functions for optimal performance:</p>
+
+            <div class="code-block">
+; Allocate memory for file operations
+invoke GlobalAlloc, GMEM_MOVEABLE, [fileinallocsize]
+mov [hMemory], eax
+invoke GlobalLock, [hMemory]
+mov [pMemory], eax
+
+; Main copy loop
+writeloop:
+    invoke ReadFile, [filein], [pMemory], [buffer.size], buffer.read, NULL
+    invoke WriteFile, [fileout], [pMemory], [buffer.read], Buffer.written, NULL
+    
+    ; Update progress tracking
+    xor rax, rax
+    mov rax, [buffer.readsize.overall]
+    add rax, [buffer.read]
+    mov [buffer.readsize.overall], rax
+    
+    cmp rax, [fileinsize]
+    jb writeloop
+
+; Clean up memory
+invoke GlobalUnlock, [pMemory]
+invoke GlobalFree, [hMemory]
+            </div>
+
+            <p>The program uses a single memory buffer that's reused for each read/write cycle, minimizing memory allocation overhead and maximizing I/O performance.</p>
+        </section>
+
+        <section id="performance-analysis">
+            <h2>Performance Analysis</h2>
+            <p>Performance testing shows that FastCopy competes well with Windows' built-in xcopy utility:</p>
+
+            <div class="performance-table">
+                <table>
+                    <tr>
+                        <th>File Size</th>
+                        <th>FastCopy (40MB buffer)</th>
+                        <th>xcopy</th>
+                        <th>Performance</th>
+                    </tr>
+                    <tr>
+                        <td>4.36 GB</td>
+                        <td>77 seconds</td>
+                        <td>35 seconds</td>
+                        <td>2.2x slower</td>
+                    </tr>
+                    <tr>
+                        <td>604 MB</td>
+                        <td>9 seconds</td>
+                        <td>6 seconds</td>
+                        <td>1.5x slower</td>
+                    </tr>
+                    <tr>
+                        <td>32.0 GB</td>
+                        <td>13 minutes</td>
+                        <td>13 minutes</td>
+                        <td>Equal</td>
+                    </tr>
+                    <tr>
+                        <td>128 GB</td>
+                        <td>52 minutes</td>
+                        <td>51 minutes</td>
+                        <td>Equal</td>
+                    </tr>
+                </table>
+            </div>
+
+            <h3>Performance Insights</h3>
+            <ul>
+                <li><b>Small files:</b> xcopy is faster due to optimized caching and buffering</li>
+                <li><b>Large files:</b> Both tools perform similarly, limited by disk I/O</li>
+                <li><b>Buffer size impact:</b> 40MB buffer performs better than 10MB for large files</li>
+                <li><b>Progress reporting:</b> Adding progress updates adds ~20% overhead</li>
+            </ul>
+
+        </section>
+
+        <section id="error-handling">
+            <h2>Error Handling</h2>
+            <p>The program includes comprehensive error handling for various file operation scenarios:</p>
+
+            <div class="code-block">
+; Error handling for file operations
+createfileinerror:
+    invoke GetLastError
+    cmp eax, 2
+    je L51        ; File Not Found
+    cmp eax, 3
+    je L52        ; Path Not Found
+    cmp eax, 5
+    je L53        ; Access denied
+    cmp eax, 8
+    je L54        ; Not enough memory
+    cmp eax, 15d
+    je L55        ; Invalid drive
+    cmp eax, 16d
+    je L56        ; Invalid directory
+    cmp eax, 80d
+    je L57        ; File already exists
+
+L51:
+    invoke printf, printf.creatfile.errorstrings.str1
+    jmp exitprogram
+            </div>
+
+            <p>Each error condition provides a specific, user-friendly message rather than generic error codes, making the tool more user-friendly despite being written in assembly.</p>
+        </section>
+
+        <section id="cybersecurity-applications">
+            <h2>Cybersecurity Applications</h2>
+            <p>Assembly language file operations have several important applications in cybersecurity:</p>
+
+            <h3>1. Malware Analysis</h3>
+            <p>Assembly language tools are often used in malware analysis because they:</p>
+            <ul>
+                <li><b>Avoid detection:</b> No standard library calls that might trigger antivirus</li>
+                <li><b>Provide control:</b> Direct system calls for file operations</li>
+                <li><b>Enable customization:</b> Specific handling for different file types</li>
+            </ul>
+
+            <h3>2. Red Teaming Operations</h3>
+            <p>During red team engagements, assembly-based file operations are valuable for:</p>
+            <ul>
+                <li><b>Stealth operations:</b> Minimal footprint and no standard library dependencies</li>
+                <li><b>Custom payload delivery:</b> Precise control over file placement and execution</li>
+                <li><b>Bypassing monitoring:</b> Avoiding standard API calls that might be logged</li>
+                <li><b>Persistence mechanisms:</b> Custom file operations for maintaining access</li>
+                <li><b>Data exfiltration:</b> Efficient copying of sensitive files without detection</li>
+            </ul>
+
+            <div class="code-block">
+; Example: Stealth file operation for red teaming
+invoke CreateFileA, filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_DELETE_ON_CLOSE, NULL
+; FILE_FLAG_DELETE_ON_CLOSE removes file after access
+; FILE_SHARE_READ allows other processes to read during operation
+            </div>
+
+            <h3>3. Shellcode Development</h3>
+            <p>Assembly language is fundamental to shellcode development for exploitation:</p>
+            <ul>
+                <li><b>Position-independent code:</b> Shellcode must run from any memory location</li>
+                <li><b>Size optimization:</b> Minimal shellcode size for constrained environments</li>
+                <li><b>Null-free code:</b> Avoiding null bytes that might terminate strings</li>
+                <li><b>System call optimization:</b> Direct API calls for maximum efficiency</li>
+                <li><b>File operation payloads:</b> Shellcode for file manipulation during exploitation</li>
+            </ul>
+
+            <div class="code-block">
+; Example: Shellcode for file operations
+; Position-independent file copy shellcode
+mov rax, 0x6B65726E656C3332    ; "kernel32"
+push rax
+mov rcx, rsp
+call GetModuleHandleA          ; Get kernel32 handle
+
+mov rcx, rax
+mov rdx, 0x6574656C654F        ; "CreateFileA"
+push rdx
+mov rdx, rsp
+call GetProcAddress            ; Get CreateFileA address
+            </div>
+
+            <h3>5. Exploitation Techniques</h3>
+            <p>Assembly-based file operations are used in various exploitation scenarios:</p>
+            <ul>
+                <li><b>Buffer overflow payloads:</b> Custom file operations in exploit code</li>
+                <li><b>ROP chains:</b> Using file operation gadgets in return-oriented programming</li>
+                <li><b>Process injection:</b> File-based payload delivery mechanisms</li>
+                <li><b>Privilege escalation:</b> Manipulating system files for privilege gains</li>
+                <li><b>Anti-forensics:</b> Secure file deletion and modification</li>
+            </ul>
+
+
+            <h3>6. Penetration Testing</h3>
+            <p>During penetration testing, custom assembly tools can be used to:</p>
+            <ul>
+                <li><b>Bypass monitoring:</b> Avoid standard API calls that might be logged</li>
+                <li><b>Custom file operations:</b> Specific handling for target systems</li>
+                <li><b>Performance testing:</b> Measure system I/O capabilities</li>
+            </ul>
+
+        </section>
+
+        <section id="conclusion">
+            <h2>Conclusion: The Power of Assembly</h2>
+            <p>Building FastCopy in assembly language demonstrated the power and flexibility of low-level programming. While high-level languages provide convenience and safety, assembly offers unmatched control and performance optimization opportunities.</p>
+            
+            <p>This code showed that assembly language is still relevant for performance-critical applications, especially in cybersecurity and system administration where every optimization matters.</p>            
+        </section>
+
+        <a class="back-link" href="../../index.html">&larr; Back to Index</a>
+    </div>
+</body>
+</html> 

@@ -129,7 +129,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>My Journey into Cybersecurity: The OneHalf Polymorphic Virus and Early Days of Hacking</h1>
+            <h1>My Journey into Cybersecurity: The OneHalf Polymorphic Virus and When Malware Analysis Was an Adventure</h1>
             <div class="subtitle">A college-day journey into one of the most fascinating polymorphic viruses</div>
             <div class="meta">
                 Research Date: 1997–2024 | Author: SV | Reading Time: 15 minutes
@@ -144,6 +144,7 @@
             <li><a href="#decryption">Decryption Routine in C</a></li>
             <li><a href="#technical">Technical Analysis</a></li>
             <li><a href="#techniques">Techniques used by OneHalf</a></li>
+            <li><a href="#interesting-facts">Interesting Facts about OneHalf from the Internet</a></li>
             <li><a href="#conclusion">Conclusion</a></li>
             <li><a href="#personal">Personal Note</a></li>
         </ul>
@@ -202,7 +203,63 @@ loc_10E65:
     clc
     jmp     loc_114D7
         </div>
-        <p>This logic, with its ever-changing structure, made OneHalf a nightmare for static analysis tools of the era.</p>
+        <p>This logic, with its ever-changing structure, made OneHalf a nightmare for static analysis tools of that time.</p>
+        <h3>Step-by-Step Explanation of the Assembly Logic</h3>
+        <ul>
+            <li><b>mov bx, 07A8h</b>: Sets the <code>BX</code> register to the starting memory address (07A8h) where the encrypted data begins.</li>
+            <li><b>jmp loc_10E25</b>: Jumps to the main setup code.</li>
+            <li><b>loc_10E25:</b>
+                <ul>
+                    <li><b>cmc</b>: Complements the carry flag (mainly obfuscation).</li>
+                    <li><b>clc</b>: Clears the carry flag.</li>
+                    <li><b>std</b>: Sets the direction flag (obfuscation).</li>
+                    <li><b>mov bp, 44EBh</b>: Sets <code>BP</code> to the initial XOR key (44EBh).</li>
+                    <li><b>jmp short loc_10E15</b>: Jumps to the decryption loop.</li>
+                </ul>
+            </li>
+            <li><b>loc_10E15:</b>
+                <ul>
+                    <li><b>xor [bx], bp</b>: Decrypts the word at address <code>[BX]</code> by XORing it with <code>BP</code> (the key).</li>
+                    <li><b>jmp loc_11172</b>: Continues to the next step.</li>
+                </ul>
+            </li>
+            <li><b>loc_11172:</b>
+                <ul>
+                    <li><b>add bp, 2EC0h</b>: Increments the XOR key for the next word (polymorphic key schedule).</li>
+                    <li><b>cmc</b>: Complements the carry flag (obfuscation).</li>
+                    <li><b>jmp loc_11052</b>: Continues.</li>
+                </ul>
+            </li>
+            <li><b>loc_11052:</b>
+                <ul>
+                    <li><b>stc</b>: Sets the carry flag (obfuscation).</li>
+                    <li><b>inc bx</b>: Increments <code>BX</code> to point to the next word.</li>
+                    <li><b>cld</b>: Clears the direction flag (obfuscation).</li>
+                    <li><b>jmp loc_10D5F</b>: Continues.</li>
+                </ul>
+            </li>
+            <li><b>loc_10D5F:</b>
+                <ul>
+                    <li><b>cmp bx, 1580h</b>: Compares <code>BX</code> to the end address (1580h).</li>
+                    <li><b>jmp loc_10E65</b>: Continues.</li>
+                </ul>
+            </li>
+            <li><b>loc_10E65:</b>
+                <ul>
+                    <li><b>db 36h</b>: Segment override prefix (SS:), inserted to confuse disassemblers.</li>
+                    <li><b>jnz short loc_10E15</b>: If <code>BX</code> is not equal to 1580h, loop back to decrypt the next word.</li>
+                    <li><b>clc</b>: Clears the carry flag (obfuscation).</li>
+                    <li><b>jmp loc_114D7</b>: Jumps to the end/exit.</li>
+                </ul>
+            </li>
+        </ul>
+        <h3>What Does This Logic Do?</h3>
+        <ul>
+            <li><b>Polymorphic Decryptor:</b> This code is a polymorphic decryptor stub. It starts at a specific memory region and, for each word (2 bytes), XORs the encrypted data with a key (<code>BP</code>).</li>
+            <li><b>Key Schedule:</b> The key is incremented for every word, so the decryption key changes every cycle, making the decryption process polymorphic.</li>
+            <li><b>Obfuscation:</b> The use of many jumps, flag manipulations, and even a segment override prefix is meant to confuse static analysis and signature-based detection.</li>
+            <li><b>End Result:</b> The encrypted payload is decrypted in memory, ready for execution. The decryptor's structure changes on every infection, making it very hard for antivirus software to detect using static signatures.</li>
+        </ul>
 
         <h2 id="decryption">Decryption Routine in C</h2>
         <p>To better understand the encryption, I wrote a C routine to decrypt the polymorphic portion of the malware. The following code is a modernized version of that routine, which demonstrates how the XOR key changes for every cycle and how the decryption is performed:</p>
@@ -283,6 +340,7 @@ F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6
             <img src="running/after_decryption.JPG" alt="After Decryption">
             <div class="image-caption">Figure 6 - File after successful decryption of OneHalf region</div>
         </div>
+        <p><b>Figure 5</b> shows the encrypted stub as copied directly from the OneHalf binary—at this stage, the data is unreadable and appears as random bytes. <b>Figure 6</b> displays the same stub after my decryption tool runs, revealing readable strings and code. In the decrypted stub, you can clearly see references to antivirus products of that era: <b>SCAN</b> and <b>CLEAN</b> (McAfee Virus Scanner), <b>MSAV</b> and <b>VSAFE</b> (Microsoft Anti-Virus), and <b>FINDVIRU</b> (Dr Solomon's Antivirus). There are also references to <b>COM</b> and <b>EXE</b>, indicating the virus targets these file types for infection. The presence of <b>CHKDSK</b> in the stub is likely an attempt to fool or interfere with disk checking utilities, or to masquerade as a legitimate system tool, further complicating detection and analysis ( I am not sure about this part though).</p>
 
         <h2 id="techniques">Techniques used by OneHalf</h2>
         <ul>
@@ -293,11 +351,25 @@ F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6 F6
             <li><b>Obfuscated Control Flow:</b> Uses multiple <code>jmp</code> instructions and scattered code to confuse static analysis tools. <br><i>Why: This makes reverse engineering and automated analysis much more challenging.</i></li>
         </ul>
 
+        <h2 id="interesting-facts">Interesting Facts about OneHalf from the Internet</h2>
+        <ul>
+            <li><b>Origin and Naming:</b> OneHalf was discovered in 1994 and is believed to have originated in Slovakia. The name "OneHalf" comes from its behavior of encrypting exactly half of the disk cylinders, displaying the message "Dis is onehalf..." when it reaches this milestone.</li>
+            <li><b>Polymorphic Innovation:</b> OneHalf was one of the first viruses to implement a truly polymorphic engine that could generate completely different decryptor stubs on each infection, making it extremely difficult for signature-based antivirus software to detect.</li>
+            <li><b>Disk-Level Encryption:</b> Unlike most viruses that encrypt individual files, OneHalf encrypted entire disk cylinders at the hardware level. This made it particularly dangerous because removing the virus without proper decryption would leave the data permanently inaccessible.</li>
+            <li><b>Antivirus Evasion:</b> The virus contained strings referencing popular antivirus products of the era (McAfee, Microsoft Anti-Virus, Dr Solomon's) as part of its evasion strategy, possibly to detect and avoid these products.</li>
+            <li><b>Technical Sophistication:</b> OneHalf's polymorphic engine was considered highly sophisticated for its time, using variable XOR keys that changed with every decryption cycle, making static analysis extremely challenging.</li>
+            <li><b>Impact on Antivirus Development:</b> OneHalf's complexity forced antivirus developers to improve their detection methods and develop more sophisticated analysis tools, contributing to the evolution of modern malware analysis techniques.</li>
+            <li><b>Legacy in Malware Analysis:</b> OneHalf remains a classic case study in malware analysis courses and is often cited as an example of early polymorphic malware that demonstrated the limitations of signature-based detection.</li>
+            <li><b>Recovery Challenges:</b> The virus's disk-level encryption made it particularly problematic for users and system administrators, as standard virus removal procedures would often result in permanent data loss if the decryption process wasn't properly executed.</li>
+        </ul>
+
         <h2 id="conclusion">Conclusion</h2>
         <p>OneHalf remains one of the most fascinating examples of early polymorphic malware. Its combination of polymorphic code, variable-key encryption, and disk-level infection made it a formidable challenge for analysts and antivirus developers. The lessons learned from analyzing OneHalf are still relevant today, as modern malware continues to evolve with similar evasion and persistence techniques.</p>
 
         <h2 id="personal">Personal Note</h2>
         <p>Looking back, working on OneHalf during my college days was a formative experience. It taught me the importance of understanding both the technical and strategic aspects of malware. The nostalgia of TurboC, Turbo Assembler, and the early days of reverse engineering still brings a smile. I hope this analysis helps others appreciate the ingenuity (and danger) of early malware, and inspires continued curiosity in the field of cybersecurity.</p>
+        <p>My journey in analyzing this virus started in 1994 and went until 2004, as I was maintaining notes throughout that period. Due to the limitations of taking screenshots during the DOS era and the different types of debuggers used at the time, I could not retrieve the exact notes or run the programs in a real DOS environment. The content in this analysis was completely created by analyzing the sample using modern era tools like IDA, VirtualBox, and Code::Blocks.</p>
+        <p>Most of the knowledge in reversing, binary analysis, and tools was acquired only after I started my career. The limitations during my childhood were significant: no access to the Internet, no awareness towards books (like Peter Norton's), I didn't even know there existed a language called Assembly, and certainly no way to know what binary executable file formats are. I did know about interrupts and used, but during childhood, my tryouts in detecting this virus were always a failure—either the virus removal routines failed or corrupted the binaries (initially I was trying to write the Virus removal tool using BASIC programming!). most of the time I was focused on creating the UI for my removal tools rather than understanding the underlying Virus assembly codes or techniques.</p>
         <p>As a hobby, I used to collect computer games using floppy disks. It was during one of these times that OneHalf infected one of my games, and thus began my encounter with this virus.</p>
 
         <a class="back-link" href="../../index.html">&larr; Back to Index</a>

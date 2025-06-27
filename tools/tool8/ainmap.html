@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ainmap: AI-Augmented Nmap in Rust</title>
+    <style>
+        body { background-color: black; color: white; font-family: 'Arial', sans-serif; margin: 0; padding: 0; line-height: 1.6; }
+        .container { max-width: 900px; margin: 0 auto; padding: 2em; }
+        .header { text-align: center; margin-bottom: 3em; border-bottom: 2px solid #00ff00; padding-bottom: 2em; }
+        h1 { font-size: 3em; margin-bottom: 0.5em; color: #00ff00; }
+        .subtitle { font-size: 1.2em; color: #cccccc; font-style: italic; }
+        .meta { color: #888888; font-size: 0.9em; margin-top: 1em; }
+        .labels { margin-top: 1.5em; margin-bottom: 2em; }
+        .label { display: inline-block; background: #1a1a1a; color: #00ff00; border: 1px solid #00ff00; border-radius: 4px; padding: 0.3em 0.9em; margin-right: 0.5em; margin-bottom: 0.5em; font-size: 0.95em; cursor: pointer; transition: background 0.2s, color 0.2s; }
+        .label:hover { background: #00ff00; color: black; }
+        h2 { font-size: 2em; color: #00ff00; margin-top: 2em; margin-bottom: 1em; border-left: 4px solid #00ff00; padding-left: 1em; }
+        h3 { font-size: 1.5em; color: #00ff00; margin-top: 1.5em; margin-bottom: 0.8em; }
+        p { font-size: 1.1em; margin-bottom: 1.5em; text-align: justify; }
+        .code-block { background-color: #1a1a1a; border: 1px solid #00ff00; border-radius: 5px; padding: 1em; margin: 1.5em 0; font-family: 'Courier New', monospace; overflow-x: auto; white-space: pre; line-height: 1.4; }
+        .back-link { display: inline-block; color: white; text-decoration: none; font-size: 1.1em; padding: 0.8em 1.5em; border: 2px solid white; border-radius: 5px; transition: all 0.3s ease; margin-top: 2em; }
+        .back-link:hover { background-color: white; color: black; }
+        .toc { background-color: #1a1a1a; border: 1px solid #00ff00; border-radius: 5px; padding: 1.5em; margin: 2em 0; }
+        .toc h3 { margin-top: 0; }
+        .toc ul { list-style: none; padding-left: 0; }
+        .toc li { margin-bottom: 0.5em; }
+        .toc a { color: #00ff00; text-decoration: none; }
+        .toc a:hover { text-decoration: underline; }
+        ul { margin-bottom: 1.5em; }
+        li { margin-bottom: 0.5em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>ainmap: AI-Augmented Nmap in Rust</h1>
+            <div class="subtitle">A Rust CLI for Natural Language Nmap Scanning and Output Analysis</div>
+            <div class="meta">
+                Published: June 2024 | Author: SV | Reading Time: 10 minutes
+            </div>
+            <div class="labels">
+                <span class="label" data-labels="Rust">Rust</span>
+                <span class="label" data-labels="AI">AI</span>
+                <span class="label" data-labels="Nmap">Nmap</span>
+                <span class="label" data-labels="CLI Tool">CLI Tool</span>
+                <span class="label" data-labels="Security Research">Security Research</span>
+            </div>
+        </div>
+
+        <div class="toc">
+            <h3>Table of Contents</h3>
+            <ul>
+                <li><a href="#introduction">1. Introduction</a></li>
+                <li><a href="#project-overview">2. Project Overview</a></li>
+                <li><a href="#tool-architecture">3. Tool Architecture</a></li>
+                <li><a href="#ai-guardrails">4. AI Guardrails and Safety</a></li>
+                <li><a href="#privacy-concerns">5. Privacy Concerns</a></li>
+                <li><a href="#rust-highlights">6. Rust Highlights</a></li>
+                <li><a href="#why-rust">7. Why Rust?</a></li>
+                <li><a href="#example-usage">8. Example Usage</a></li>
+                <li><a href="#conclusion">9. Conclusion</a></li>
+            </ul>
+        </div>
+
+        <section id="introduction">
+            <h2>Introduction</h2>
+            <p><strong>ainmap</strong> is an AI-powered CLI tool that brings natural language understanding to Nmap scanning. By leveraging OpenAI's API, it allows users to describe their scanning needs in plain English and receive valid, optimized Nmap commands in response. It can also analyze Nmap output and suggest the next logical scan, making it a powerful assistant for network security professionals and enthusiasts.</p>
+        </section>
+
+        <section id="project-overview">
+            <h2>Project Overview</h2>
+            <p><strong>ainmap</strong> bridges the gap between human intuition and network scanning expertise. Its key features include:</p>
+            <ul>
+                <li>AI-driven natural language to Nmap command conversion</li>
+                <li>Interactive CLI for iterative scanning and analysis</li>
+                <li>Automated analysis of Nmap output with AI-powered suggestions</li>
+                <li>Safe, fast, and modular Rust backend</li>
+                <li>Support for direct Nmap commands and natural language queries</li>
+            </ul>
+        </section>
+
+        <section id="tool-architecture">
+            <h2>Tool Architecture</h2>
+            <p>The tool is organized into several Rust modules for clarity and extensibility:</p>
+            <ul>
+                <li><b>main.rs</b>: Entry point. Loads environment variables, sets up the HTTP client, and starts the CLI loop.</li>
+                <li><b>modules/ai.rs</b>: Handles all AI interactions, including prompt construction, OpenAI API calls, and extracting Nmap commands from responses.</li>
+                <li><b>modules/nmap.rs</b>: Executes Nmap commands and captures their output for further analysis.</li>
+                <li><b>modules/input.rs</b>: Manages user input, command parsing, help, and the interactive CLI workflow.</li>
+            </ul>            
+        </section>
+
+        <section id="ai-guardrails">
+            <h2>AI Guardrails and Safety</h2>
+            <p><strong>ainmap</strong> implements safety measures through a guardrail system using the <code>nmap.instructions.txt</code> file. This file contains carefully crafted instructions and constraints that are used as the system prompt for all AI interactions.</p>
+            <p>The guardrail file serves several important purposes:</p>
+            <ul>
+                <li><b>Command Validation:</b> Ensures the AI only generates valid Nmap commands</li>
+                <li><b>Safety Constraints:</b> Prevents the generation of potentially harmful or overly aggressive scanning commands</li>
+                <li><b>Consistency:</b> Maintains a standardized approach to command generation across all interactions</li>
+                <li><b>Output Formatting:</b> Ensures the AI returns clean, executable commands without unnecessary explanations</li>
+            </ul>
+            <p>This guardrail system is read and applied to every AI interaction, helping to maintain the tool's reliability and safety while ensuring users receive appropriate, well-formed Nmap commands.</p>
+        </section>
+
+        <section id="privacy-concerns">
+            <h2>Privacy Concerns</h2>
+            <p>As <strong>ainmap</strong> interacts with external AI services, privacy and data protection are important considerations. I am planning to implement two approaches to address these concerns:</p>
+            <ol>
+                <li><b>IP Address Modification:</b> Completely modify IP addresses when interacting with AI services and implement internal logic that maps actual IP addresses to modified ones. This ensures that sensitive network information is not exposed to external AI providers while maintaining the tool's functionality.</li>
+                <li><b>Rust-based REST APIs with Custom Models:</b> Implement Rust-based REST APIs that can utilize custom models, such as AWS Bedrock, to process Nmap commands and analysis locally or within controlled environments. This approach provides greater control over data processing and reduces dependency on external AI services.</li>
+            </ol>
+            <p>These implementations will enhance privacy protection while maintaining the tool's effectiveness and user experience.</p>
+        </section>
+
+        <section id="rust-highlights">
+            <h2>Rust Highlights</h2>
+            <p>Below is a simplified example of how ainmap uses AI to convert natural language into an Nmap command:</p>
+            <div class="code-block">
+// Pseudocode for AI-driven Nmap command generation
+let prompt = format!(
+    "You are an expert in network scanning with Nmap. Convert the following request into a valid Nmap command: {}",
+    user_query
+);
+let response = call_openai(&client, &api_key, &prompt).await?;
+let nmap_command = extract_nmap_command(&response)?;
+            </div>
+        </section>
+
+        <section id="why-rust">
+            <h2>Why Rust?</h2>
+            <p>Rust was chosen for its safety, speed, and reliability. Its strong type system and memory safety guarantees make it ideal for building robust security tools that interact with system-level processes like Nmap.</p>
+        </section>
+
+        <section id="example-usage">
+            <h2>Example Usage</h2>
+            <p>ainmap supports both direct Nmap commands and natural language queries. Here's a sample session:</p>
+            <div class="code-block">
+ai.nmap> scan for open ports on 192.168.1.1
+Generated Nmap command: nmap -p- 192.168.1.1
+Execute command? (y/n): y
+Nmap Output:
+PORT      STATE SERVICE
+22/tcp    open  ssh
+80/tcp    open  http
+
+Choose an option:
+1. Understand the output.
+2. Retrieve the next possible Nmap command.
+3. Do nothing (return to main menu).
+            </div>
+        </section>
+
+        <section id="conclusion">
+            <h2>Conclusion</h2>
+            <p><strong>ainmap</strong> demonstrates the power of combining AI with traditional security tools. By making Nmap accessible through natural language and automating iterative scanning, it streamlines network reconnaissance and lowers the barrier for both new and experienced users. Its modular Rust codebase ensures safety and extensibility for future enhancements.</p>
+        </section>
+
+        <a class="back-link" href="../../index.html">&larr; Back to Index</a>
+    </div>
+</body>
+</html> 

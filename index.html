@@ -114,6 +114,15 @@
         .label.network { color: #00fa9a; border-color: #00fa9a; }
         .label.year { color: #cccccc; border-color: #888888; }
         .label.exploits { color: #ffae42; border-color: #ffae42; }
+        .label.pentesting { color: #ff00ff; border-color: #ff00ff; }
+        .label.linux { color: #00ffff; border-color: #00ffff; }
+        .label.redteaming { color: #ff4444; border-color: #ff4444; }
+        .label.shell { color: #32cd32; border-color: #32cd32; }
+        .label.creative { color: #ff69b4; border-color: #ff69b4; }
+        .label.animation { color: #9370db; border-color: #9370db; }
+        .label.performance { color: #ffd700; border-color: #ffd700; }
+        .label.file-operations { color: #00bfff; border-color: #00bfff; }
+        .label.pe-format { color: #ff6b6b; border-color: #ff6b6b; }
 
         .site-title {
             text-align: center;
@@ -165,30 +174,64 @@
 <body>
     <div class="container">
         <h1>VlabsC - Space for Tools, Experiments, and Thoughts</h1>
-        <button class="show-all-btn" onclick="showAll()">Show All</button>
+        
+        <div style="margin: 2em 0; padding: 1em; background: #1a1a1a; border: 1px solid #00ff00; border-radius: 5px;">
+            <div style="display: flex; flex-wrap: wrap; gap: 0.3em;">
+                <span class="label" onclick="showAll()" style="background: #00ff00; color: black;">Show All</span>
+                <span class="label ai" onclick="filterByLabel('ai')">AI Security</span>
+                <span class="label threat" onclick="filterByLabel('threat')">Threat Analysis</span>
+                <span class="label ransomware" onclick="filterByLabel('ransomware')">Ransomware</span>
+                <span class="label malware" onclick="filterByLabel('malware')">Malware</span>
+                <span class="label polymorphic" onclick="filterByLabel('polymorphic')">Polymorphic</span>
+                <span class="label retro" onclick="filterByLabel('retro')">Retro</span>
+                <span class="label redteaming" onclick="filterByLabel('redteaming')">Red Team</span>
+                <span class="label assembly" onclick="filterByLabel('assembly')">Assembly</span>
+                <span class="label reverse" onclick="filterByLabel('reverse')">Reverse Engineering</span>
+                <span class="label rust" onclick="filterByLabel('rust')">Rust</span>
+                <span class="label c" onclick="filterByLabel('c')">C</span>
+                <span class="label fuzzing" onclick="filterByLabel('fuzzing')">Fuzzing</span>
+                <span class="label windows" onclick="filterByLabel('windows')">Windows</span>
+                <span class="label pentesting" onclick="filterByLabel('pentesting')">Pentesting</span>
+                <span class="label linux" onclick="filterByLabel('linux')">Linux</span>
+                <span class="label prompt" onclick="filterByLabel('prompt')">Prompt Engineering</span>
+                <span class="label book" onclick="filterByLabel('book')">Book</span>
+                <span class="label journal" onclick="filterByLabel('journal')">Journal</span>
+                <span class="label network" onclick="filterByLabel('network')">Networking</span>
+                <span class="label exploits" onclick="filterByLabel('exploits')">Exploits</span>
+                <span class="label mitre" onclick="filterByLabel('mitre')">MITRE ATT&CK</span>
+                <span class="label apt" onclick="filterByLabel('apt')">APT</span>
+                <span class="label cli" onclick="filterByLabel('cli')">CLI Tool</span>
+                <span class="label disassembler" onclick="filterByLabel('disassembler')">Disassembler</span>
+                <span class="label simulation" onclick="filterByLabel('simulation')">Simulation</span>
+            </div>
+        </div>
         <h3>Research</h3>
         <ul>
-            <li data-labels="ai threat">
+            <li data-labels="ai threat redteaming">
                 <a href="research/research1/silent-sabotage-what-happens-when-your-llm-is-backdoored-08-06-2025.html">Silent Sabotage: Backdooring LLMs</a>
                 <span class="label ai" onclick="filterByLabel('ai')">AI Security</span>
                 <span class="label threat" onclick="filterByLabel('threat')">Threat Analysis</span>
+                <span class="label redteaming" onclick="filterByLabel('redteaming')">Red Team</span>
             </li>
-            <li data-labels="threat ransomware">
+            <li data-labels="threat ransomware reverse">
                 <a href="research/research2/analysing-emotet-and-trickbot-together_15_06_2025.html">Analysing Emotet and Trickbot Together: A Comprehensive Threat Research Analysis</a>
                 <span class="label threat" onclick="filterByLabel('threat')">Threat Analysis</span>
                 <span class="label ransomware" onclick="filterByLabel('ransomware')">Ransomware</span>
+                <span class="label reverse" onclick="filterByLabel('reverse')">Reverse Engineering</span>
             </li>
-            <li data-labels="ransomware threat">
+            <li data-labels="ransomware threat reverse">
                 <a href="research/research3/shade-ransomware-analysis.html">Technical Analysis of the Shade Ransomware – Part I</a>
                 <span class="label ransomware" onclick="filterByLabel('ransomware')">Ransomware</span>
                 <span class="label threat" onclick="filterByLabel('threat')">Threat Analysis</span>
+                <span class="label reverse" onclick="filterByLabel('reverse')">Reverse Engineering</span>
             </li>
-            <li data-labels="threat malware polymorphic retro">
+            <li data-labels="threat malware polymorphic retro reverse">
                 <a href="research/research4/onehalf-polymorphic-virus-analysis.html">My Journey into Cybersecurity: The OneHalf Polymorphic Virus and Early Days of Hacking</a>
                 <span class="label threat" onclick="filterByLabel('threat')">Threat Analysis</span>
                 <span class="label malware" onclick="filterByLabel('malware')">Malware</span>
                 <span class="label polymorphic" onclick="filterByLabel('polymorphic')">Polymorphic</span>
                 <span class="label retro" onclick="filterByLabel('retro')">Retro</span>
+                <span class="label reverse" onclick="filterByLabel('reverse')">Reverse Engineering</span>
             </li>
         </ul>
 
@@ -242,6 +285,36 @@
                 <span class="label apt" onclick="filterByLabel('apt')">APT</span>
                 <span class="label cli" onclick="filterByLabel('cli')">CLI Tool</span>
             </li>
+            <li data-labels="rust pentesting linux ai">
+                <a href="tools/tool8/ainmap.html">ainmap: AI-Augmented Nmap in Rust</a>
+                <span class="label rust" onclick="filterByLabel('rust')">Rust</span>
+                <span class="label pentesting" onclick="filterByLabel('pentesting')">Pentesting</span>
+                <span class="label linux" onclick="filterByLabel('linux')">Linux</span>
+                <span class="label ai" onclick="filterByLabel('ai')">AI</span>
+            </li>
+            <li data-labels="rust ai shell cli">
+                <a href="tools/tool9/aish.html">aish: AI-Augmented Shell in Rust</a>
+                <span class="label rust" onclick="filterByLabel('rust')">Rust</span>
+                <span class="label ai" onclick="filterByLabel('ai')">AI</span>
+                <span class="label shell" onclick="filterByLabel('shell')">Shell</span>
+                <span class="label cli" onclick="filterByLabel('cli')">CLI Tool</span>
+            </li>
+            <li data-labels="rust simulation redteaming research proof-of-concept">
+                <a href="tools/tool10/ghostsim.html">GhostSIM: Attack Simulation - Proof-of-Concept</a>
+                <span class="label rust" onclick="filterByLabel('rust')">Rust</span>
+                <span class="label simulation" onclick="filterByLabel('simulation')">Attack Simulation</span>
+                <span class="label redteaming" onclick="filterByLabel('redteaming')">Red Team</span>
+                <span class="label research" onclick="filterByLabel('research')">Security Research</span>
+                <span class="label proof-of-concept" onclick="filterByLabel('proof-of-concept')">Proof-of-Concept</span>
+            </li>
+            <li data-labels="c linux network cryptography retro">
+                <a href="tools/tool11/secure-ftp-linux-2002.html">Secure FTP Tool - Linux Implementation (2002)</a>
+                <span class="label c" onclick="filterByLabel('c')">C</span>
+                <span class="label linux" onclick="filterByLabel('linux')">Linux</span>
+                <span class="label network" onclick="filterByLabel('network')">Networking</span>
+                <span class="label cryptography" onclick="filterByLabel('cryptography')">Cryptography</span>
+                <span class="label retro" onclick="filterByLabel('retro')">Retro</span>
+            </li>
         </ul>
 
         <h3>Blogs</h3>
@@ -278,6 +351,28 @@
                 <span class="label book" onclick="filterByLabel('book')">Book</span>
                 <span class="label ai" onclick="filterByLabel('ai')">AI Security</span>
                 <span class="label network" onclick="filterByLabel('network')">Networking</span>
+            </li>
+        </ul>
+
+        <h3>Miscellaneous</h3>
+        <ul>
+            <li data-labels="assembly reverse engineering windows pe-format">
+                <a href="miscs/misc3/pe-header-parser-evolution.html">PE Header Parser: Evolution of a Windows Binary Analysis Tool</a>
+                <span class="label assembly" onclick="filterByLabel('assembly')">Assembly</span>
+                <span class="label reverse" onclick="filterByLabel('reverse')">Reverse Engineering</span>
+                <span class="label windows" onclick="filterByLabel('windows')">Windows</span>
+                <span class="label pe-format" onclick="filterByLabel('pe-format')">PE Format</span>
+            </li>
+            <li data-labels="assembly windows">
+                <a href="miscs/misc2/fastcopy-assembly-journey.html">FastCopy: A High-Performance File Copy Tool in Assembly</a>
+                <span class="label assembly" onclick="filterByLabel('assembly')">Assembly</span>
+                <span class="label windows" onclick="filterByLabel('windows')">Windows</span>
+            </li>
+            <li data-labels="rust creative programming animation">
+                <a href="miscs/misc1/recursive-animation-journey.html">The Art of Recursive Animation: A Visual Programming Journey</a>
+                <span class="label rust" onclick="filterByLabel('rust')">Rust</span>
+                <span class="label creative" onclick="filterByLabel('creative')">Creative Programming</span>
+                <span class="label animation" onclick="filterByLabel('animation')">Animation</span>
             </li>
         </ul>
         
